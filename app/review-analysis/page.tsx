@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Star, TrendingUp, TrendingDown, MessageCircle, ThumbsUp, ThumbsDown, AlertCircle } from "lucide-react";
+import { ArrowLeft, Star, TrendingUp, TrendingDown, MessageCircle, ThumbsUp, ThumbsDown, AlertCircle, Info, Camera } from "lucide-react";
 
 interface SentimentAnalysis {
   positive: number;
@@ -32,125 +32,70 @@ interface ReviewAnalysis {
   averageRating: number;
 }
 
+interface ExtractedReview {
+  name: string;
+  location: string;
+  date: string;
+  text: string;
+  rating: string;
+}
+
 export default function ReviewAnalysisPage() {
   const [listingUrl, setListingUrl] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<ReviewAnalysis | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const [extractedReviews, setExtractedReviews] = useState<ExtractedReview[] | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     setAnalysis(null);
+    setNote(null);
+    setExtractedReviews(null);
 
     try {
-      // Simulate API call
-      setTimeout(() => {
-        // Mock data for demonstration
-        const mockAnalysis: ReviewAnalysis = {
-          overallSentiment: {
-            positive: 72,
-            neutral: 18,
-            negative: 10
-          },
-          topicAnalysis: [
-            {
-              topic: "Cleanliness",
-              sentiment: "positive",
-              count: 28,
-              examples: [
-                "The apartment was spotless when we arrived.",
-                "Everything was clean and well-maintained.",
-                "The cleanest Airbnb we've ever stayed in!"
-              ]
-            },
-            {
-              topic: "Location",
-              sentiment: "positive",
-              count: 35,
-              examples: [
-                "Perfect location, close to everything!",
-                "Great neighborhood with lots of restaurants nearby.",
-                "Easy access to public transportation."
-              ]
-            },
-            {
-              topic: "Communication",
-              sentiment: "positive",
-              count: 22,
-              examples: [
-                "Host was very responsive and helpful.",
-                "Great communication before and during our stay.",
-                "Quick responses to all our questions."
-              ]
-            },
-            {
-              topic: "Amenities",
-              sentiment: "neutral",
-              count: 15,
-              examples: [
-                "Basic amenities were provided.",
-                "The kitchen had most of what we needed.",
-                "Wifi worked well most of the time."
-              ]
-            },
-            {
-              topic: "Noise",
-              sentiment: "negative",
-              count: 8,
-              examples: [
-                "Street noise was quite loud at night.",
-                "Could hear neighbors through the walls.",
-                "Construction noise started early in the morning."
-              ]
-            },
-            {
-              topic: "Bathroom",
-              sentiment: "negative",
-              count: 6,
-              examples: [
-                "Shower pressure was very weak.",
-                "Bathroom was smaller than it appeared in photos.",
-                "Limited hot water for showers."
-              ]
-            }
-          ],
-          commonPraises: [
-            "Great location",
-            "Clean and comfortable",
-            "Responsive host",
-            "Beautiful view",
-            "Well-equipped kitchen"
-          ],
-          commonComplaints: [
-            "Street noise",
-            "Weak shower pressure",
-            "Limited parking options",
-            "Uncomfortable mattress",
-            "Slow wifi"
-          ],
-          trendAnalysis: [
-            { period: "Last 3 months", rating: 4.8, change: 0.2 },
-            { period: "4-6 months ago", rating: 4.6, change: 0.1 },
-            { period: "7-12 months ago", rating: 4.5, change: -0.1 },
-            { period: "Over 12 months ago", rating: 4.6, change: 0 }
-          ],
-          recommendations: [
-            "Address noise issues by providing earplugs or installing better soundproofing",
-            "Upgrade the shower system to improve water pressure",
-            "Add more information about parking options in your listing description",
-            "Consider replacing the mattress in the main bedroom",
-            "Upgrade your wifi router or internet plan for better connectivity"
-          ],
-          reviewCount: 87,
-          averageRating: 4.7
-        };
+      // Call the real API endpoint
+      const response = await fetch('/api/review-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url: listingUrl,
+          email: email || 'user@example.com' // Provide a default email if not entered
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.analysis) {
+        setAnalysis(data.analysis);
         
-        setAnalysis(mockAnalysis);
-        setLoading(false);
-      }, 2000);
+        // Set the note if provided by the API
+        if (data.note) {
+          setNote(data.note);
+        }
+        
+        // Store extracted reviews in state but don't display them
+        if (data.extractedReviews && data.extractedReviews.length > 0) {
+          setExtractedReviews(data.extractedReviews);
+          console.log(`Received ${data.extractedReviews.length} extracted reviews`);
+        }
+      } else {
+        setError(data.error || 'Failed to analyze reviews. Please try again.');
+      }
+      
+      setLoading(false);
     } catch (err) {
+      console.error('Error during API call:', err);
       setError("Failed to analyze reviews. Please try again.");
       setLoading(false);
     }
@@ -187,7 +132,24 @@ export default function ReviewAnalysisPage() {
                   required
                 />
                 <p className="text-sm text-gray-500">
-                  We'll analyze all reviews from your Airbnb listing.
+                  We&apos;ll analyze all reviews from your Airbnb listing.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                  Your Email (for notifications)
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="text-sm text-gray-500">
+                  We&apos;ll notify you when we add new analysis features.
                 </p>
               </div>
               
@@ -211,6 +173,16 @@ export default function ReviewAnalysisPage() {
           </div>
         )}
         
+        {note && (
+          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 flex items-start">
+            <Info className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium">Note</p>
+              <p>{note}</p>
+            </div>
+          </div>
+        )}
+        
         {analysis && (
           <div className="mt-8 space-y-8">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -229,6 +201,16 @@ export default function ReviewAnalysisPage() {
                   </div>
                 </div>
               </div>
+              
+              {/* Add a small badge if we have real reviews */}
+              {extractedReviews && extractedReviews.length > 0 && (
+                <div className="px-6 md:px-8 pt-4">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <Camera className="h-3 w-3 mr-1" />
+                    {extractedReviews.length} real reviews analyzed
+                  </span>
+                </div>
+              )}
               
               <div className="p-6 md:p-8">
                 {/* Sentiment Overview */}
@@ -345,7 +327,7 @@ export default function ReviewAnalysisPage() {
                         <div className="space-y-2">
                           {topic.examples.map((example, i) => (
                             <div key={i} className="text-sm italic">
-                              "{example}"
+                              &ldquo;{example}&rdquo;
                             </div>
                           ))}
                         </div>

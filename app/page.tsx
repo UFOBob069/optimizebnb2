@@ -129,18 +129,15 @@ export default function Home() {
                 <div className="text-4xl mr-4">⭐</div>
                 <h2 className="text-2xl font-semibold">Review Analysis</h2>
               </div>
-              <p className="text-gray-600 mb-4">
-                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium">Coming Soon</span>
-              </p>
               <p className="text-gray-600 mb-6">
-                Our review analysis feature is coming soon! We're working on enhancing our platform to provide you with valuable insights from guest reviews.
+                Gain valuable insights from your guest reviews. Identify patterns, sentiment trends, and areas for improvement to enhance your listing.
               </p>
-              <button
-                className="text-blue-500 hover:text-blue-700 font-medium flex items-center opacity-50 cursor-not-allowed"
-                disabled
+              <Link 
+                href="/review-analysis" 
+                className="text-blue-500 hover:text-blue-700 font-medium flex items-center"
               >
                 Analyze Reviews <span className="ml-1">→</span>
-              </button>
+              </Link>
             </div>
 
             {/* Pricing Strategy Feature */}

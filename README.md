@@ -1,86 +1,73 @@
-# OptimizeBnb.AI
+# OptimizeBnb
 
-OptimizeBnb.AI is a comprehensive platform designed to help Airbnb hosts optimize their listings, improve guest experiences, and increase bookings through AI-powered tools and analysis.
+OptimizeBnb is an AI-powered platform designed to help Airbnb hosts maximize their success through intelligent automation and optimization tools.
 
 ## Features
 
-- **Listing Analysis**: Get comprehensive feedback on your Airbnb listing
-- **Photo Analysis**: Receive professional feedback on your listing photos
-- **SEO Optimization**: Optimize your title and description for better search visibility
-- **Review Analysis**: Analyze guest reviews for sentiment and improvement opportunities
-- **Welcome Guide Generator**: Create custom welcome guides for your guests
-- **Pricing Strategy**: Get data-driven pricing recommendations
+- AI-powered pricing optimization
+- Smart home device integration
+- Automated guest communication
+- Review analysis
+- Property performance insights
+- Host guides and resources
 
-## Tech Stack
+## Blog Articles
 
-- **Framework**: Next.js 14
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **AI Integration**: OpenAI API
-- **Web Scraping**: Playwright
+The platform includes comprehensive blog articles covering various aspects of Airbnb hosting:
+
+- The Future of Short-Term Rentals: AI and Automation in 2024
+- 10 Must-Have Smart Home Devices for Your Airbnb
+- Mastering Guest Communication: Tips and Templates
+- Complete Guide to Airbnb Automation
+
+## Technology Stack
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Lucide Icons
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 18+ and npm
-
-### Installation
-
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/optimizebnb-ai.git
-cd optimizebnb-ai
+git clone https://github.com/UFOBob069/optimizebnb.git
 ```
 
 2. Install dependencies:
 ```bash
+cd optimizebnb
 npm install
 ```
 
-3. Create a `.env.local` file in the root directory with your OpenAI API key:
-```
-OPENAI_API_KEY=your_api_key_here
-```
-
-4. Run the development server:
+3. Run the development server:
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Project Structure
 
-- `app/` - Next.js App Router pages and components
-- `app/api/` - API routes for backend functionality
-- `public/` - Static assets
-- `utils/` - Utility functions and helpers
-- `types/` - TypeScript type definitions
+```
+optimizebnb/
+├── app/
+│   ├── blog/
+│   │   ├── future-of-short-term-rentals/
+│   │   └── smart-home-devices/
+│   ├── components/
+│   └── page.tsx
+├── public/
+│   ├── blog/
+│   └── team/
+└── package.json
+```
 
-## Main Pages
+## Contributing
 
-- `/` - Homepage with feature overview
-- `/analyze` - Main listing analysis page
-- `/welcome-guide` - Welcome guide generator
-- `/photo-analysis` - Photo analysis and recommendations
-- `/seo-optimization` - Title and description optimization
-- `/review-analysis` - Guest review sentiment analysis
-
-## API Endpoints
-
-- `/api/analyze` - Analyzes an Airbnb listing URL
-- `/api/photos` - Analyzes listing photos
-- `/api/reviews` - Analyzes guest reviews
-- `/api/seo` - Provides SEO recommendations
-- `/api/welcome-guide` - Generates a custom welcome guide
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgements
-
-- OpenAI for providing the AI capabilities
-- Next.js team for the amazing framework
-- Tailwind CSS for the styling utilities
