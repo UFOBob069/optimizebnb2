@@ -240,60 +240,6 @@ export default function ReviewAnalysisPage() {
                   </div>
                 </div>
                 
-                {/* Rating Trends */}
-                <div className="mb-10">
-                  <h3 className="text-xl font-semibold mb-4">Rating Trends</h3>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Time Period
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Average Rating
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Change
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {analysis.trendAnalysis.map((trend, index) => (
-                          <tr key={index}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {trend.period}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              <div className="flex items-center">
-                                <Star className="h-4 w-4 text-yellow-400 mr-1" fill="currentColor" />
-                                {trend.rating.toFixed(1)}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              <div className="flex items-center">
-                                {trend.change > 0 ? (
-                                  <>
-                                    <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                                    <span className="text-green-500">+{trend.change.toFixed(1)}</span>
-                                  </>
-                                ) : trend.change < 0 ? (
-                                  <>
-                                    <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                                    <span className="text-red-500">{trend.change.toFixed(1)}</span>
-                                  </>
-                                ) : (
-                                  <span>No change</span>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                
                 {/* Topic Analysis */}
                 <div className="mb-10">
                   <h3 className="text-xl font-semibold mb-4">Topic Analysis</h3>

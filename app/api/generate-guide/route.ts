@@ -324,8 +324,8 @@ async function scrapeAirbnbListing(url, address) {
         }
         
         return 'Entire rental unit';
-      });
-      console.log(`Property type: ${propertyType}`);
+    });
+    console.log(`Property type: ${propertyType}`);
     } catch (error) {
       console.error('Error extracting property type:', error);
       propertyType = 'Entire rental unit';
@@ -351,8 +351,8 @@ async function scrapeAirbnbListing(url, address) {
         }
         
         return 'A beautiful property perfect for your stay.';
-      });
-      console.log(`Description extracted: ${description.substring(0, 100)}...`);
+    });
+    console.log(`Description extracted: ${description.substring(0, 100)}...`);
     } catch (error) {
       console.error('Error extracting description:', error);
       description = 'A beautiful property perfect for your stay.';
@@ -393,11 +393,11 @@ async function scrapeAirbnbListing(url, address) {
         }
         
         console.log('Combined details text:', detailsText);
-        
-        // Extract numbers using regex
-        const bedroomsMatch = detailsText.match(/(\d+)\s+bedroom/i);
-        const bathroomsMatch = detailsText.match(/(\d+)\s+bathroom/i);
-        const guestsMatch = detailsText.match(/(\d+)\s+guest/i);
+      
+      // Extract numbers using regex
+      const bedroomsMatch = detailsText.match(/(\d+)\s+bedroom/i);
+      const bathroomsMatch = detailsText.match(/(\d+)\s+bathroom/i);
+      const guestsMatch = detailsText.match(/(\d+)\s+guest/i);
         
         console.log('Regex matches:', {
           bedrooms: bedroomsMatch ? bedroomsMatch[1] : 'not found',
@@ -450,15 +450,15 @@ async function scrapeAirbnbListing(url, address) {
             maxGuests: guestsAlt ? parseInt(guestsAlt[1]) : (guestNumber || 2)
           };
         }
-        
-        return {
-          bedrooms: bedroomsMatch ? parseInt(bedroomsMatch[1]) : 1,
-          bathrooms: bathroomsMatch ? parseInt(bathroomsMatch[1]) : 1,
-          maxGuests: guestsMatch ? parseInt(guestsMatch[1]) : 2
-        };
-      });
-      console.log(`Details extracted: ${JSON.stringify(details)}`);
       
+      return {
+        bedrooms: bedroomsMatch ? parseInt(bedroomsMatch[1]) : 1,
+        bathrooms: bathroomsMatch ? parseInt(bathroomsMatch[1]) : 1,
+        maxGuests: guestsMatch ? parseInt(guestsMatch[1]) : 2
+      };
+    });
+    console.log(`Details extracted: ${JSON.stringify(details)}`);
+    
       // Add a direct page content extraction for debugging
       const pageContent = await page.evaluate(() => {
         // Get the text content of specific sections that might contain details
@@ -567,9 +567,9 @@ async function scrapeAirbnbListing(url, address) {
     hostInfo = {
       name: 'Your Host',
       isSuperhost: false,
-      responseRate: '100%',
+        responseRate: '100%',
       responseTime: 'within a day'
-    };
+      };
     
     // Close the browser
     await browser.close();
@@ -612,11 +612,11 @@ async function scrapeAirbnbListing(url, address) {
         currentPrice: 100,
         suggestedPrice: 120,
         marketAverage: 110,
-        priceRange: {
+      priceRange: {
           min: 90,
           max: 130
-        },
-        recommendations: [
+      },
+      recommendations: [
           'Consider adjusting your base price based on seasonal demand',
           'Offer discounts for longer stays',
           'Implement dynamic pricing for weekends and holidays',
@@ -696,7 +696,7 @@ async function generateGuideWithAI(propertyData, selectedSections) {
   console.log(`Selected sections: ${selectedSections.join(', ')}`);
   
   try {
-    // Store original content for comparison
+    // Create original content sections
     const originalSections = {};
     
     // Create sections object for optimized content
@@ -716,70 +716,40 @@ async function generateGuideWithAI(propertyData, selectedSections) {
       readability: Math.floor(Math.random() * 10) + 90 // Simulated score between 90-100
     };
     
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Use OpenAI for content optimization if API key is available
-    let useOpenAI = false;
-    try {
-      if (process.env.OPENAI_API_KEY) {
-        useOpenAI = true;
-        console.log('Using OpenAI for content optimization');
-      }
-    } catch (error) {
-      console.log('OpenAI API key not available, using template-based optimization');
-    }
+    // Check if OpenAI API key is available
+    const useOpenAI = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your-api-key';
+    console.log(`Using OpenAI for content generation: ${useOpenAI}`);
     
     // Process each selected section
     for (const section of selectedSections) {
       console.log(`Processing section: ${section}`);
       
-      // Store original content
-      if (section === 'title') {
-        originalSections.title = `${propertyData.propertyType} in ${propertyData.location.city}`;
-      } else if (section === 'description') {
-        originalSections.description = propertyData.description || `A lovely ${propertyData.propertyType.toLowerCase()} in ${propertyData.location.city}.`;
-      } else if (section === 'amenities') {
-        originalSections.amenities = `Amenities:\n${propertyData.amenities.join('\n')}`;
-      } else if (section === 'house_rules') {
-        originalSections.house_rules = `House Rules:\n${propertyData.houseRules.join('\n')}`;
-      } else if (section === 'local_area') {
-        originalSections.local_area = `Located in ${propertyData.location.city}, ${propertyData.location.state}, ${propertyData.location.country}.`;
-      } else if (section === 'host_bio') {
-        originalSections.host_bio = `Hosted by ${propertyData.hostInfo.name}${propertyData.hostInfo.isSuperhost ? ' (Superhost)' : ''}.`;
-      } else if (section === 'welcome') {
-        originalSections.welcome = `Welcome to ${propertyData.propertyName}! We're delighted to have you as our guest.`;
-      } else if (section === 'property') {
-        originalSections.property = `${propertyData.propertyName} is a ${propertyData.details.bedrooms} bedroom, ${propertyData.details.bathrooms} bathroom ${propertyData.propertyType.toLowerCase()} that can accommodate up to ${propertyData.details.maxGuests} guests.`;
-      } else if (section === 'checkin') {
-        originalSections.checkin = `Check-in time is after 3:00 PM. Check-out time is before 11:00 AM.`;
-      } else if (section === 'wifi') {
-        originalSections.wifi = `WiFi Network: "Guest Network"\nPassword: "welcome123"`;
-      } else if (section === 'restaurants') {
-        originalSections.restaurants = `Here are some great restaurants near ${propertyData.location.city}.`;
-      } else if (section === 'attractions') {
-        originalSections.attractions = `Explore these popular attractions in ${propertyData.location.city}.`;
-      } else if (section === 'transportation') {
-        originalSections.transportation = `Getting around ${propertyData.location.city} is easy with these transportation options.`;
-      } else if (section === 'emergency') {
-        originalSections.emergency = `Emergency contacts and information for your stay in ${propertyData.location.city}.`;
-      }
-      
-      // Generate optimized content
-      if (useOpenAI) {
-        try {
-          // Use OpenAI to optimize the content
-          const optimizedContent = await optimizeWithOpenAI(section, propertyData, originalSections[section], extractedKeywords);
-          sections[section] = optimizedContent.content;
-          seoAnalysis[section] = optimizedContent.analysis;
-        } catch (error) {
-          console.error(`Error optimizing ${section} with OpenAI:`, error);
-          // Fall back to template-based content
+      try {
+        if (useOpenAI) {
+          // Generate content with OpenAI
+          sections[section] = await generateContentWithOpenAI(section, propertyData);
+        } else {
+          // Fallback to template-based content
           sections[section] = generateTemplateContent(section, propertyData);
         }
-      } else {
-        // Use template-based content generation
-        sections[section] = generateTemplateContent(section, propertyData);
+        
+        // Generate simulated SEO analysis
+        seoAnalysis[section] = {
+          suggestions: [
+            "Add more specific details about the property",
+            "Include more keywords related to the location",
+            "Make the content more engaging for potential guests"
+          ],
+          score: Math.floor(Math.random() * 20) + 80 // Random score between 80-100
+        };
+      } catch (sectionError) {
+        console.error(`Error processing section ${section}:`, sectionError);
+        // Provide a fallback for this section
+        sections[section] = `Content for ${section} section will be generated.`;
+        seoAnalysis[section] = {
+          suggestions: ["Error generating content, please try again"],
+          score: 70
+        };
       }
     }
     
@@ -788,213 +758,110 @@ async function generateGuideWithAI(propertyData, selectedSections) {
     return {
       propertyName: propertyData.propertyName,
       sections,
-      originalSections,
+      originalSections: {},
       seoAnalysis,
       keywords: extractedKeywords,
       seoScore,
-      pricingStrategy: propertyData.pricingStrategy
+      pricingStrategy: propertyData.pricingStrategy || {}
     };
   } catch (error) {
     console.error('Error generating guide:', error);
     
-    // Fall back to a template-based guide with only the selected sections
+    // Create a minimal fallback guide with basic content
     const fallbackSections = {};
     for (const section of selectedSections) {
-      fallbackSections[section] = generateTemplateContent(section, propertyData);
+      fallbackSections[section] = `Content for ${section} section will be available soon.`;
     }
     
     return {
-      propertyName: propertyData.propertyName,
-      sections: fallbackSections
+      propertyName: propertyData.propertyName || "Your Property",
+      sections: fallbackSections,
+      originalSections: {},
+      seoAnalysis: {},
+      keywords: ["property", "airbnb", "listing", "accommodation"],
+      seoScore: {
+        overall: 70,
+        keywordDensity: 70,
+        readability: 70
+      },
+      pricingStrategy: {}
     };
   }
 }
 
-// Function to extract keywords from property data
-function extractKeywords(propertyData) {
-  const keywords = [];
+// Function to generate content with OpenAI
+async function generateContentWithOpenAI(section, propertyData) {
+  console.log(`Generating OpenAI content for section: ${section}`);
   
-  // Add property type
-  if (propertyData.propertyType) {
-    keywords.push(propertyData.propertyType.toLowerCase());
-  }
-  
-  // Add location keywords - only general location, not specific address
-  if (propertyData.location) {
-    if (propertyData.location.city) keywords.push(propertyData.location.city);
-    if (propertyData.location.state) keywords.push(propertyData.location.state);
-    if (propertyData.location.country) keywords.push(propertyData.location.country);
-    if (propertyData.location.neighborhood) keywords.push(propertyData.location.neighborhood);
-  }
-  
-  // Add property features
-  if (propertyData.details) {
-    if (propertyData.details.bedrooms) {
-      keywords.push(`${propertyData.details.bedrooms} bedroom`);
-      if (propertyData.details.bedrooms > 1) {
-        keywords.push(`${propertyData.details.bedrooms} bedrooms`);
-      }
-    }
-    if (propertyData.details.bathrooms) {
-      keywords.push(`${propertyData.details.bathrooms} bathroom`);
-      if (propertyData.details.bathrooms > 1) {
-        keywords.push(`${propertyData.details.bathrooms} bathrooms`);
-      }
-    }
-  }
-  
-  // Add top amenities
-  if (propertyData.amenities && propertyData.amenities.length > 0) {
-    const topAmenities = propertyData.amenities.slice(0, 5);
-    keywords.push(...topAmenities);
-  }
-  
-  // Add host status
-  if (propertyData.hostInfo && propertyData.hostInfo.isSuperhost) {
-    keywords.push('superhost');
-  }
-  
-  // Add common Airbnb search terms
-  keywords.push('vacation rental', 'airbnb', 'stay', 'accommodation');
-  
-  // Remove duplicates and limit to 15 keywords
-  return [...new Set(keywords)].slice(0, 15);
-}
-
-// Function to optimize content with OpenAI
-async function optimizeWithOpenAI(section, propertyData, originalContent, keywords) {
   try {
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    // Create a detailed property description for OpenAI
+    const propertyDescription = `
+Property Name: ${propertyData.propertyName}
+Property Type: ${propertyData.propertyType}
+Location: ${propertyData.location.city}, ${propertyData.location.state}, ${propertyData.location.country}
+Bedrooms: ${propertyData.details.bedrooms}
+Bathrooms: ${propertyData.details.bathrooms}
+Max Guests: ${propertyData.details.maxGuests}
+Amenities: ${propertyData.amenities.join(', ')}
+House Rules: ${propertyData.houseRules.join(', ')}
+Host: ${propertyData.hostInfo.name} (${propertyData.hostInfo.isSuperhost ? 'Superhost' : 'Host'})
+    `;
     
+    // Define prompts for different sections
     const sectionPrompts = {
-      title: `Create a short, catchy title for this Airbnb listing (max 50 characters): "${originalContent}". 
-      Property details: ${propertyData.details.bedrooms} bedroom, ${propertyData.details.bathrooms} bathroom ${propertyData.propertyType.toLowerCase()} in ${propertyData.location.city}.
-      Make it compelling and include key features. Use these keywords where natural: ${keywords.slice(0, 5).join(', ')}.`,
+      welcome: `Create a warm, personalized welcome message for guests staying at this Airbnb property. Include a brief introduction to the property and express enthusiasm about their stay. Keep it friendly and inviting.`,
       
-      description: `Create a concise, engaging description for this Airbnb listing (max 150 words): "${originalContent}".
-      Property details: ${propertyData.details.bedrooms} bedroom, ${propertyData.details.bathrooms} bathroom ${propertyData.propertyType.toLowerCase()} in ${propertyData.location.city}.
-      Highlight unique features and use these keywords naturally: ${keywords.slice(0, 8).join(', ')}.
-      Format with short paragraphs for readability. Be brief but compelling.
-      IMPORTANT: Do not include specific address information, only general location like city, neighborhood, or proximity to landmarks.`,
+      property: `Create a detailed description of the property including its layout, amenities, and special features. Highlight what makes this property unique and comfortable for guests.`,
       
-      amenities: `Create a concise, organized list of amenities for this Airbnb listing (max 100 words): "${originalContent}".
-      Group them by importance, highlight unique amenities first, and use bullet points.
-      Keep it brief and focused on the most important amenities.`,
+      checkin: `Create clear check-in and check-out instructions for guests. Include information about key pickup/dropoff, entry codes, parking, and any other relevant arrival/departure details.`,
       
-      house_rules: `Create concise house rules for this Airbnb listing (max 100 words): "${originalContent}".
-      Make them clear, friendly, and easy to read. Use bullet points and keep it brief.`,
+      wifi: `Create a section about WiFi and entertainment options at the property. Include information about internet access, TV/streaming services, and any other entertainment amenities.`,
       
-      local_area: `Create a brief local area guide for an Airbnb in ${propertyData.location.city}, ${propertyData.location.state || ''}, ${propertyData.location.country} (max 100 words).
-      Highlight only the most important nearby attractions, restaurants, and transportation options.
-      Be concise and include these keywords naturally: ${keywords.slice(0, 5).join(', ')}.
-      IMPORTANT: Do not include specific address information, only general location like neighborhood or proximity to landmarks.`,
+      restaurants: `Create a guide to local dining options near the property. Recommend a variety of restaurants, cafes, and bars at different price points and for different tastes.`,
       
-      host_bio: `Create a brief host bio for an Airbnb listing (max 75 words): "${originalContent}".
-      Host name: ${propertyData.hostInfo.name}
-      Superhost status: ${propertyData.hostInfo.isSuperhost ? 'Yes' : 'No'}
-      Keep it warm, welcoming, and concise.`,
+      attractions: `Create a guide to nearby attractions and activities. Include popular tourist destinations, hidden gems, outdoor activities, and cultural experiences within easy reach of the property.`,
       
-      welcome: `Create a brief, warm welcome message for guests staying at this ${propertyData.propertyType.toLowerCase()} in ${propertyData.location.city} (max 75 words).
-      Make it friendly and inviting, but keep it concise.`,
+      transportation: `Create a guide to transportation options in the area. Include information about public transit, parking, rideshare services, and how to get to/from major transportation hubs.`,
       
-      property: `Create a concise property information guide for this ${propertyData.propertyType.toLowerCase()} in ${propertyData.location.city} (max 150 words).
-      Include only the most important details about rooms, amenities, and how to use key features.
-      Use bullet points and keep sections short.`,
+      house_rules: `Create a clear, friendly list of house rules for guests to follow during their stay. Include important policies about noise, smoking, pets, parties, etc.`,
       
-      checkin: `Create brief check-in and check-out instructions for guests (max 100 words).
-      Include only essential information about accessing the property and check-out procedures.
-      Use bullet points for clarity and brevity.`,
-      
-      wifi: `Create a concise WiFi and entertainment guide (max 75 words).
-      Include only essential information about connecting to WiFi and using entertainment systems.
-      Use bullet points and keep it brief.`,
-      
-      restaurants: `Create a brief guide to local restaurants near this Airbnb in ${propertyData.location.city} (max 100 words).
-      Highlight only 3-5 top dining options at different price points.
-      Use bullet points and keep descriptions very brief.`,
-      
-      attractions: `Create a concise guide to nearby attractions for guests staying at this Airbnb in ${propertyData.location.city} (max 100 words).
-      Include only 3-5 must-see attractions or activities.
-      Use bullet points and keep descriptions very brief.`,
-      
-      transportation: `Create a brief transportation guide for guests staying at this Airbnb in ${propertyData.location.city} (max 100 words).
-      Include only essential information about getting around.
-      Use bullet points and keep it concise.`,
-      
-      emergency: `Create a concise emergency information guide for guests (max 100 words).
-      Include only the most important emergency contacts and safety information.
-      Use bullet points and keep it brief.`
+      emergency: `Create an emergency information section with important contacts and procedures. Include local emergency numbers, nearest hospital/urgent care, property manager contact, and basic emergency protocols.`
     };
     
-    // Check if the section exists in sectionPrompts
-    if (!sectionPrompts[section]) {
-      console.log(`No prompt found for section: ${section}, using generic prompt`);
-      sectionPrompts[section] = `Create concise, optimized content for the ${section} section of an Airbnb listing in ${propertyData.location.city} (max 100 words).
-      Make it engaging, informative, and brief. Use these keywords naturally: ${keywords.slice(0, 5).join(', ')}.
-      Use bullet points where appropriate.`;
-    }
+    // Get the appropriate prompt for this section
+    const prompt = sectionPrompts[section] || `Create content for the ${section} section of an Airbnb welcome guide.`;
     
-    // Ensure originalContent is not null
-    const safeOriginalContent = originalContent || `Content for ${section} section`;
-    
-    // Replace originalContent with safeOriginalContent in the prompt
-    let promptContent = sectionPrompts[section];
-    if (promptContent.includes('"${originalContent}"')) {
-      promptContent = promptContent.replace('"${originalContent}"', `"${safeOriginalContent}"`);
-    }
-    
+    // Call OpenAI API
     const response = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
-          content: "You are an expert in creating concise, visually appealing content for Airbnb listings. Your task is to create brief, well-formatted content that is easy to scan and read. Use bullet points, short paragraphs, and clear headings. Never include specific address information in your content, only general location details like city, neighborhood, or proximity to landmarks."
+          content: "You are an expert in creating welcoming, informative, and professional content for Airbnb hosts. Your task is to create a section for a welcome guide that will help guests have a great stay."
         },
         {
           role: "user",
-          content: promptContent
+          content: `${prompt}\n\nHere are the property details:\n${propertyDescription}\n\nFormat the content with markdown for better readability. Use bullet points where appropriate. Keep the tone warm and professional.`
         }
       ],
       temperature: 0.7,
+      max_tokens: 1000
     });
     
-    const optimizedContent = response.choices[0].message.content;
+    // Extract the content from the response
+    const content = response.choices[0].message.content;
     
-    // Generate analysis of improvements
-    const analysisResponse = await openai.chat.completions.create({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert in creating concise, visually appealing content for Airbnb listings. Analyze the improvements made to the content."
-        },
-        {
-          role: "user",
-          content: `Original content: "${originalContent}"\n\nOptimized content: "${optimizedContent}"\n\nList 3-5 specific SEO improvements that were made.`
-        }
-      ],
-      temperature: 0.7,
-    });
+    // If the content is empty, fall back to template
+    if (!content) {
+      console.log(`Empty response from OpenAI for section ${section}, using template fallback`);
+      return generateTemplateContent(section, propertyData);
+    }
     
-    const analysisText = analysisResponse.choices[0].message.content;
-    
-    // Extract improvements from analysis
-    const improvements = analysisText
-      .split(/\n|•|-/)
-      .map(line => line.trim())
-      .filter(line => line.length > 10 && !line.toLowerCase().includes('original') && !line.toLowerCase().includes('optimized'));
-    
-    return {
-      content: optimizedContent,
-      analysis: {
-        improvements: improvements.slice(0, 5)
-      }
-    };
+    return content;
   } catch (error) {
-    console.error('Error in OpenAI optimization:', error);
-    throw error;
+    console.error(`Error generating content with OpenAI for section ${section}:`, error);
+    // Fall back to template-based content
+    return generateTemplateContent(section, propertyData);
   }
 }
 
@@ -1141,6 +1008,57 @@ Feel free to reach out if you need anything!`;
   // If section not found, return empty string
   console.log(`No template found for section: ${section}`);
   return `Content for ${section} section will be generated.`;
+}
+
+// Function to extract keywords from property data
+function extractKeywords(propertyData) {
+  const keywords = [];
+  
+  // Add property type
+  if (propertyData.propertyType) {
+    keywords.push(propertyData.propertyType.toLowerCase());
+  }
+  
+  // Add location keywords - only general location, not specific address
+  if (propertyData.location) {
+    if (propertyData.location.city) keywords.push(propertyData.location.city);
+    if (propertyData.location.state) keywords.push(propertyData.location.state);
+    if (propertyData.location.country) keywords.push(propertyData.location.country);
+    if (propertyData.location.neighborhood) keywords.push(propertyData.location.neighborhood);
+  }
+  
+  // Add property features
+  if (propertyData.details) {
+    if (propertyData.details.bedrooms) {
+      keywords.push(`${propertyData.details.bedrooms} bedroom`);
+      if (propertyData.details.bedrooms > 1) {
+        keywords.push(`${propertyData.details.bedrooms} bedrooms`);
+      }
+    }
+    if (propertyData.details.bathrooms) {
+      keywords.push(`${propertyData.details.bathrooms} bathroom`);
+      if (propertyData.details.bathrooms > 1) {
+        keywords.push(`${propertyData.details.bathrooms} bathrooms`);
+      }
+    }
+  }
+  
+  // Add top amenities
+  if (propertyData.amenities && propertyData.amenities.length > 0) {
+    const topAmenities = propertyData.amenities.slice(0, 5);
+    keywords.push(...topAmenities);
+  }
+  
+  // Add host status
+  if (propertyData.hostInfo && propertyData.hostInfo.isSuperhost) {
+    keywords.push('superhost');
+  }
+  
+  // Add common Airbnb search terms
+  keywords.push('vacation rental', 'airbnb', 'stay', 'accommodation');
+  
+  // Remove duplicates and limit to 15 keywords
+  return [...new Set(keywords)].slice(0, 15);
 }
 
 export async function POST(request) {

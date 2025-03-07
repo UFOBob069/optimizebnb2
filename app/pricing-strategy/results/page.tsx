@@ -96,21 +96,47 @@ export default function PricingStrategyResultsPage() {
         
         <div className="mb-8">
           <h3 className="font-medium text-lg mb-3 text-green-700">Seasonal Adjustments</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {strategy.pricingStrategy?.seasonalStrategy?.map((season, index) => (
               <div key={index} className="bg-green-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-1">{season.season}</h4>
-                <p>{season.strategy}</p>
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium">{season.season}</h4>
+                  <span className={`px-2 py-1 rounded-full text-sm font-medium ${
+                    season.adjustment > 0 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {season.adjustment > 0 ? '+' : ''}{season.adjustment}%
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mb-1">{season.months}</p>
+                <p className="text-sm text-gray-600">{season.reasoning}</p>
               </div>
             )) || (
               <>
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-1">Peak Season</h4>
-                  <p>Increase rates by 20-40%</p>
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">High Season</h4>
+                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">+15%</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-1">June-August</p>
+                  <p className="text-sm text-gray-600">Summer months typically see higher demand for vacation rentals</p>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-1">Off Season</h4>
-                  <p>Reduce rates by 15-25%</p>
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Shoulder Season</h4>
+                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm font-medium">+5%</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-1">April-May, September-October</p>
+                  <p className="text-sm text-gray-600">Moderate demand with pleasant weather conditions</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Low Season</h4>
+                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm font-medium">-10%</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-1">November-March</p>
+                  <p className="text-sm text-gray-600">Lower demand during colder months requires competitive pricing</p>
                 </div>
               </>
             )}
@@ -119,21 +145,39 @@ export default function PricingStrategyResultsPage() {
         
         <div className="mb-8">
           <h3 className="font-medium text-lg mb-3 text-purple-700">Discount Strategies</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {strategy.pricingStrategy?.discountStrategies?.map((discount, index) => (
               <div key={index} className="bg-purple-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-1">{discount.type}</h4>
-                <p>{discount.recommendation}</p>
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium">{discount.stayLength}</h4>
+                  <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm font-medium">
+                    {discount.discountPercentage}% off
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">{discount.reasoning}</p>
               </div>
             )) || (
               <>
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-1">Length of Stay</h4>
-                  <p>10-15% for weekly, 20-30% for monthly</p>
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Weekly (7+ nights)</h4>
+                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm font-medium">10% off</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Encourages longer bookings and reduces turnover costs</p>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-1">Last-Minute</h4>
-                  <p>10-15% for bookings within 3-7 days</p>
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Monthly (28+ nights)</h4>
+                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm font-medium">25% off</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Guarantees occupancy and eliminates vacancy risks</p>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Last-minute (2-3 days before)</h4>
+                    <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-sm font-medium">15% off</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Fills potential vacancies when booking window is closing</p>
                 </div>
               </>
             )}
@@ -142,21 +186,39 @@ export default function PricingStrategyResultsPage() {
         
         <div className="mb-8">
           <h3 className="font-medium text-lg mb-3 text-orange-700">Premium Charges</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {strategy.pricingStrategy?.premiumCharges?.map((premium, index) => (
               <div key={index} className="bg-orange-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-1">{premium.type}</h4>
-                <p>{premium.recommendation}</p>
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium">{premium.event}</h4>
+                  <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm font-medium">
+                    +{premium.premiumPercentage}%
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">{premium.reasoning}</p>
               </div>
             )) || (
               <>
                 <div className="bg-orange-50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-1">Weekend</h4>
-                  <p>10-20% for Friday and Saturday nights</p>
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Holidays</h4>
+                    <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm font-medium">+25%</span>
+                  </div>
+                  <p className="text-sm text-gray-600">High demand periods with limited supply</p>
                 </div>
                 <div className="bg-orange-50 p-4 rounded-lg">
-                  <h4 className="font-medium mb-1">Holiday</h4>
-                  <p>25-40% for major holidays</p>
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Local Events</h4>
+                    <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm font-medium">+20%</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Conferences, festivals, and sporting events drive demand</p>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-medium">Peak Weekends</h4>
+                    <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm font-medium">+15%</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Friday and Saturday nights during high season</p>
                 </div>
               </>
             )}
@@ -164,25 +226,62 @@ export default function PricingStrategyResultsPage() {
         </div>
         
         <div className="mb-8">
-          <h3 className="font-medium text-lg mb-3 text-indigo-700">Competitive Positioning</h3>
-          <div className="bg-indigo-50 p-4 rounded-lg">
-            <ul className="space-y-2">
+          <h3 className="font-medium text-lg mb-3 text-blue-700">Competitive Positioning</h3>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <ul className="space-y-3">
               <li className="flex items-start">
-                <span className="text-indigo-500 mr-2">•</span>
+                <span className="text-blue-500 mr-2">•</span>
                 <span>{strategy.pricingStrategy?.competitivePositioning?.superhostAdvantage || "Work toward Superhost status for premium pricing"}</span>
               </li>
               <li className="flex items-start">
-                <span className="text-indigo-500 mr-2">•</span>
+                <span className="text-blue-500 mr-2">•</span>
                 <span>{strategy.pricingStrategy?.competitivePositioning?.reviewStrategy || "Actively solicit positive reviews to build credibility"}</span>
               </li>
               <li className="flex items-start">
-                <span className="text-indigo-500 mr-2">•</span>
+                <span className="text-blue-500 mr-2">•</span>
                 <span>{strategy.pricingStrategy?.competitivePositioning?.photographyTip || "Invest in professional photography to showcase value"}</span>
               </li>
               <li className="flex items-start">
-                <span className="text-indigo-500 mr-2">•</span>
+                <span className="text-blue-500 mr-2">•</span>
                 <span>{strategy.pricingStrategy?.competitivePositioning?.amenityHighlights || "Emphasize high-value amenities in your listing"}</span>
               </li>
+            </ul>
+          </div>
+        </div>
+        
+        <div className="mb-8">
+          <h3 className="font-medium text-lg mb-3 text-red-700">Promotional Recommendations</h3>
+          <div className="bg-red-50 p-4 rounded-lg">
+            <ul className="space-y-3">
+              {strategy.pricingStrategy?.promotionalRecommendations?.map((promo, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="text-red-500 mr-2">•</span>
+                  <span>{promo}</span>
+                </li>
+              )) || (
+                <>
+                  <li className="flex items-start">
+                    <span className="text-red-500 mr-2">•</span>
+                    <span>Offer a 'Book 2 nights, get 1 free' promotion during low season</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-red-500 mr-2">•</span>
+                    <span>Create special packages that include local experiences or amenities</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-red-500 mr-2">•</span>
+                    <span>Implement a referral program offering discounts for guests who refer friends</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-red-500 mr-2">•</span>
+                    <span>Run limited-time flash sales for specific dates with low bookings</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-red-500 mr-2">•</span>
+                    <span>Partner with local businesses to offer exclusive discounts to your guests</span>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
         </div>
@@ -193,7 +292,16 @@ export default function PricingStrategyResultsPage() {
             <p className="mb-2">Consider using these dynamic pricing tools to automate your pricing strategy:</p>
             <div className="flex flex-wrap gap-2">
               {strategy.pricingStrategy?.dynamicPricingTools?.map((tool, index) => (
-                <span key={index} className="bg-gray-200 px-3 py-1 rounded-full text-gray-700">{tool}</span>
+                <a 
+                  key={index} 
+                  href={tool.website || '#'} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="bg-gray-200 px-3 py-1 rounded-full text-gray-700 hover:bg-gray-300 flex items-center"
+                >
+                  <span>{tool.name}</span>
+                  {tool.website && <span className="ml-1 text-xs">↗</span>}
+                </a>
               )) || (
                 <>
                   <span className="bg-gray-200 px-3 py-1 rounded-full text-gray-700">PriceLabs</span>
@@ -202,6 +310,27 @@ export default function PricingStrategyResultsPage() {
                 </>
               )}
             </div>
+            
+            {strategy.pricingStrategy?.dynamicPricingTools?.length > 0 && (
+              <div className="mt-4 space-y-3">
+                {strategy.pricingStrategy.dynamicPricingTools.map((tool, index) => (
+                  <div key={index} className="border-l-2 border-blue-300 pl-3">
+                    <h4 className="font-medium">{tool.name}</h4>
+                    <p className="text-sm text-gray-600">{tool.description}</p>
+                    {tool.website && (
+                      <a 
+                        href={tool.website} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        Visit website ↗
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

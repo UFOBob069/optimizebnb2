@@ -33,7 +33,9 @@ export default function SEOResultsPage() {
   const handleCopyAll = () => {
     if (!guide || !guide.sections) return;
     
-    const allContent = Object.values(guide.sections).join('\n\n');
+    const allContent = Object.keys(guide.sections)
+      .map(key => guide.sections[key].optimized)
+      .join('\n\n');
     
     navigator.clipboard.writeText(allContent)
       .then(() => {
@@ -48,7 +50,7 @@ export default function SEOResultsPage() {
   const handleCopySection = (sectionKey) => {
     if (!guide || !guide.sections || !guide.sections[sectionKey]) return;
     
-    navigator.clipboard.writeText(guide.sections[sectionKey])
+    navigator.clipboard.writeText(guide.sections[sectionKey].optimized)
       .then(() => {
         setActiveCopySection(sectionKey);
         setTimeout(() => setActiveCopySection(null), 2000);
@@ -165,14 +167,14 @@ export default function SEOResultsPage() {
                 </button>
               </div>
               
-              {guide.originalSections && guide.originalSections[sectionKey] && (
+              {guide.sections[sectionKey].original && (
                 <div className={`mb-4 ${showOriginal ? 'block' : 'hidden'}`}>
                   <div className="bg-gray-50 p-4 rounded-md">
                     <div className="flex items-center mb-2">
                       <span className="text-xs font-medium px-2 py-1 bg-gray-200 rounded text-gray-700">Original Content</span>
                     </div>
                     <div className="prose max-w-none text-gray-600">
-                      {guide.originalSections[sectionKey].split('\n').map((paragraph, i) => (
+                      {guide.sections[sectionKey].original.split('\n').map((paragraph, i) => (
                         <p key={i} className={paragraph.trim() === '' ? 'my-4' : 'my-2'}>
                           {paragraph}
                         </p>
@@ -188,23 +190,52 @@ export default function SEOResultsPage() {
                     <span className="text-xs font-medium px-2 py-1 bg-green-100 rounded text-green-800">Optimized Content</span>
                   </div>
                   <div className="prose max-w-none">
-                    {guide.sections[sectionKey].split('\n').map((paragraph, i) => (
-                      <p key={i} className={paragraph.trim() === '' ? 'my-4' : 'my-2'}>
-                        {paragraph}
-                      </p>
-                    ))}
+                    {guide.sections[sectionKey].optimized.split('\n').map((paragraph, i) => {
+                      // Check if this is a bullet point (starts with - or *)
+                      const isBulletPoint = /^\s*[-*]\s/.test(paragraph);
+                      // Check if this is a section header (has ** or ## in it)
+                      const isSectionHeader = /[*#]{2}/.test(paragraph);
+                      
+                      if (isBulletPoint) {
+                        return (
+                          <div key={i} className="flex items-start my-2 ml-4">
+                            <div className="flex-shrink-0 w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center mr-2 mt-1">
+                              <span className="text-blue-600 text-xs">•</span>
+                            </div>
+                            <span className="flex-grow">{paragraph.replace(/^\s*[-*]\s/, '')}</span>
+                          </div>
+                        );
+                      } else if (isSectionHeader) {
+                        return (
+                          <h4 key={i} className="font-medium text-blue-800 mt-4 mb-2">
+                            {paragraph.replace(/[*#]/g, '').trim()}
+                          </h4>
+                        );
+                      } else {
+                        return (
+                          <p key={i} className={paragraph.trim() === '' ? 'my-4' : 'my-2'}>
+                            {paragraph}
+                          </p>
+                        );
+                      }
+                    })}
                   </div>
                 </div>
               </div>
               
-              {guide.seoAnalysis && guide.seoAnalysis[sectionKey] && (
-                <div className="mt-3 bg-blue-50 p-3 rounded-md">
-                  <h4 className="text-sm font-medium text-blue-800 mb-1">SEO Improvements</h4>
-                  <ul className="text-sm space-y-1">
-                    {guide.seoAnalysis[sectionKey].improvements.map((improvement, i) => (
+              {guide.sections[sectionKey].analysis && (
+                <div className="mt-3 bg-blue-50 p-4 rounded-md">
+                  <h4 className="text-sm font-medium text-blue-800 mb-3">SEO Improvements</h4>
+                  <ul className="text-sm space-y-3 pl-0">
+                    {guide.sections[sectionKey].analysis.suggestions.map((suggestion, i) => (
                       <li key={i} className="flex items-start">
-                        <span className="text-green-500 mr-1">✓</span>
-                        <span>{improvement}</span>
+                        <div className="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-green-600 text-xs">✓</span>
+                        </div>
+                        <div className="flex-grow">
+                          <span className="font-medium text-gray-700">{i+1}. </span>
+                          <span className="text-gray-700">{suggestion}</span>
+                        </div>
                       </li>
                     ))}
                   </ul>

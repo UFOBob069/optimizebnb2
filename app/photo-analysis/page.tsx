@@ -309,7 +309,7 @@ export default function PhotoAnalysisPage() {
             <h3 className="font-medium text-lg mb-2">Recommendations</h3>
             <ul className="list-disc pl-5 space-y-1">
               {analysis.recommendations.map((recommendation, index) => (
-                <li key={index}>{recommendation}</li>
+                <li key={index} className="text-blue-700">{recommendation}</li>
               ))}
             </ul>
           </div>

@@ -59,10 +59,10 @@ export default function SEOOptimizationPage() {
     }
     
     setIsLoading(true);
-    setScrapingStatus('Scraping your Airbnb listing...');
+    setScrapingStatus('Analyzing your Airbnb listing...');
     
     try {
-      const response = await fetch('/api/generate-guide', {
+      const response = await fetch('/api/seo-optimize', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

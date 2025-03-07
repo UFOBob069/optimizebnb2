@@ -1245,6 +1245,120 @@ function getAmenityRecommendations(propertyType: string, location: string = '', 
   };
 }
 
+// Function to generate amenity recommendations using OpenAI
+async function generateAmenityRecommendationsWithAI(propertyType: string, location: string = '', existingAmenities: string[] = []) {
+  console.log(`Generating AI recommendations for ${propertyType} in ${location}`);
+  console.log(`Existing amenities: ${existingAmenities.length > 0 ? existingAmenities.join(', ') : 'None detected'}`);
+  
+  try {
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your-api-key') {
+      console.log('OpenAI API key not available, using fallback recommendations');
+      return getAmenityRecommendations(propertyType, location, existingAmenities);
+    }
+    
+    // Prepare the prompt for OpenAI
+    const prompt = `
+      As an Airbnb hosting expert, provide premium amenity recommendations for a ${propertyType} in ${location || 'any location'}.
+      
+      ${existingAmenities.length > 0 ? `The property already has these amenities: ${existingAmenities.join(', ')}` : 'No information about existing amenities is available.'}
+      
+      Please provide recommendations organized into 4-5 categories (like Essential Comfort, Work & Entertainment, etc.).
+      
+      For each category, include:
+      1. A category name
+      2. An emoji icon that represents the category
+      3. A brief description of the category
+      4. 3-5 recommended amenities
+      
+      For each amenity, include:
+      1. Name of the amenity
+      2. Description of what it includes
+      3. 2-3 benefits for hosts (increased bookings, higher rates, better reviews, etc.)
+      4. Investment level (Low, Medium, High)
+      5. Return on investment (Low, Medium, High)
+      
+      Also provide:
+      1. A summary paragraph about the overall amenity strategy for this property type
+      2. A list of 3-5 quick wins (low-cost, high-impact amenities)
+      
+      Format the response as a JSON object with the following structure:
+      {
+        "propertyType": "property type",
+        "location": "location",
+        "summary": "overall strategy summary",
+        "categories": [
+          {
+            "name": "category name",
+            "icon": "emoji",
+            "description": "category description",
+            "amenities": [
+              {
+                "name": "amenity name",
+                "description": "what it includes",
+                "benefits": ["benefit 1", "benefit 2", "benefit 3"],
+                "investmentLevel": "Low/Medium/High",
+                "roi": "Low/Medium/High"
+              }
+            ]
+          }
+        ],
+        "quickWins": [
+          {
+            "name": "quick win name",
+            "description": "quick description",
+            "estimatedCost": "$XX-$XXX"
+          }
+        ]
+      }
+    `;
+    
+    // Call OpenAI API
+    const response = await openai.chat.completions.create({
+      model: "gpt-4-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert in Airbnb hosting and property management. You provide detailed, actionable amenity recommendations to help hosts increase their bookings, ratings, and revenue."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2500,
+      response_format: { type: "json_object" }
+    });
+    
+    // Parse the response
+    const content = response.choices[0].message.content;
+    if (!content) {
+      console.log('Empty response from OpenAI, using fallback recommendations');
+      return getAmenityRecommendations(propertyType, location, existingAmenities);
+    }
+    
+    try {
+      const aiRecommendations = JSON.parse(content);
+      console.log('Successfully generated AI recommendations');
+      
+      // Ensure the response has the expected structure
+      if (!aiRecommendations.categories || !Array.isArray(aiRecommendations.categories)) {
+        console.log('Invalid AI response structure, using fallback recommendations');
+        return getAmenityRecommendations(propertyType, location, existingAmenities);
+      }
+      
+      return aiRecommendations;
+    } catch (parseError) {
+      console.error('Error parsing OpenAI response:', parseError);
+      return getAmenityRecommendations(propertyType, location, existingAmenities);
+    }
+  } catch (error) {
+    console.error('Error calling OpenAI API:', error);
+    return getAmenityRecommendations(propertyType, location, existingAmenities);
+  }
+}
+
 export async function POST(request: Request) {
   try {
     // Parse request body
@@ -1285,8 +1399,8 @@ export async function POST(request: Request) {
         const scrapedData = await scrapeAirbnbListing(url);
         
         if (scrapedData) {
-          // Generate recommendations based on scraped data
-          recommendations = getAmenityRecommendations(
+          // Generate recommendations based on scraped data using AI
+          recommendations = await generateAmenityRecommendationsWithAI(
             scrapedData.propertyType,
             scrapedData.location,
             scrapedData.existingAmenities
@@ -1296,17 +1410,17 @@ export async function POST(request: Request) {
           recommendations.propertyName = scrapedData.propertyName;
         } else {
           // Fallback if scraping fails
-          console.log('Scraping failed, using fallback recommendations');
-          recommendations = getAmenityRecommendations(propertyType || 'house');
+          console.log('Scraping failed, using AI recommendations with property type only');
+          recommendations = await generateAmenityRecommendationsWithAI(propertyType || 'house');
         }
       } catch (scrapeError) {
         console.error('Error during scraping process:', scrapeError);
-        // Fallback to property type or default recommendations
-        recommendations = getAmenityRecommendations(propertyType || 'house');
+        // Fallback to property type or default recommendations with AI
+        recommendations = await generateAmenityRecommendationsWithAI(propertyType || 'house');
       }
     } else {
-      // Generate recommendations based on property type
-      recommendations = getAmenityRecommendations(propertyType);
+      // Generate recommendations based on property type using AI
+      recommendations = await generateAmenityRecommendationsWithAI(propertyType);
     }
     
     // Return the recommendations and "coming soon" reviews message

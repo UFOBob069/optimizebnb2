@@ -66,7 +66,7 @@ export default function PricingStrategyPage() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/generate-guide', {
+      const response = await fetch('/api/pricing-strategy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +75,6 @@ export default function PricingStrategyPage() {
           url,
           email,
           address,
-          selectedSections: ['pricing'],
         }),
       });
       
@@ -106,100 +105,100 @@ export default function PricingStrategyPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-8">Optimize Your Airbnb Pricing Strategy</h1>
+      <h1 className="text-3xl font-bold text-center mb-8">Get Your Optimal Pricing Strategy</h1>
       
       <div className="bg-white shadow-md rounded-lg p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">How It Works</h2>
         <ol className="list-decimal pl-5 space-y-2">
           <li>Enter your Airbnb listing URL</li>
-          <li>Provide your email address where we&apos;ll send updates</li>
-          <li>Enter your property address</li>
-          <li>Our AI will analyze your listing and generate an optimized pricing strategy</li>
+          <li>Our AI will analyze your property and local market data</li>
+          <li>Receive a personalized pricing strategy with seasonal adjustments</li>
+          <li>Get recommendations for discounts, premiums, and promotions</li>
+          <li>Learn how to position your property competitively in your market</li>
         </ol>
       </div>
       
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
-      
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6">
-        <div className="mb-6">
-          <label htmlFor="url" className="block text-gray-700 font-medium mb-2">
-            Airbnb Listing URL*
-          </label>
-          <input
-            type="url"
-            id="url"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://www.airbnb.com/rooms/12345678"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            We&apos;ll analyze your listing to generate an optimized pricing strategy
-          </p>
-        </div>
-        
-        <div className="mb-6">
-          <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
-            Your Email Address*
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            We&apos;ll send you updates and the final pricing strategy to this email
-          </p>
-        </div>
-        
-        <div className="mb-6">
-          <label htmlFor="address" className="block text-gray-700 font-medium mb-2">
-            Property Address*
-          </label>
-          <input
-            type="text"
-            id="address"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="City, State, Country"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            Format: City, State, Country (e.g., &quot;Miami, Florida, USA&quot;)
-          </p>
-        </div>
-        
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`px-6 py-3 text-white font-medium rounded-md ${
-              isLoading
-                ? 'bg-blue-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            {isLoading ? (
-              <div className="flex items-center">
-                <div className="animate-spin mr-2 h-5 w-5 border-t-2 border-b-2 border-white rounded-full"></div>
-                Generating Pricing Strategy...
-              </div>
-            ) : (
-              'Generate Pricing Strategy'
-            )}
-          </button>
-        </div>
-      </form>
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <form onSubmit={handleSubmit}>
+          <div className="mb-6">
+            <label htmlFor="url" className="block text-gray-700 font-medium mb-2">
+              Airbnb Listing URL*
+            </label>
+            <input
+              type="url"
+              id="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://www.airbnb.com/rooms/12345678"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              We'll analyze your listing to provide accurate pricing recommendations
+            </p>
+          </div>
+          
+          <div className="mb-6">
+            <label htmlFor="address" className="block text-gray-700 font-medium mb-2">
+              Property Address*
+            </label>
+            <input
+              type="text"
+              id="address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="123 Main St, City, State, Country"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              We need this to analyze your local market
+            </p>
+          </div>
+          
+          <div className="mb-6">
+            <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
+              Your Email Address*
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              We'll send you the full pricing strategy report
+            </p>
+          </div>
+          
+          {error && (
+            <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4">
+              <p className="text-red-700">{error}</p>
+            </div>
+          )}
+          
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`px-6 py-3 text-white font-medium rounded-md ${
+                isLoading
+                  ? 'bg-blue-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              {isLoading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin mr-2 h-5 w-5 border-t-2 border-b-2 border-white rounded-full"></div>
+                  Analyzing...
+                </div>
+              ) : (
+                'Generate Pricing Strategy'
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
       
       <div className="mt-10 bg-blue-50 rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">Why Optimize Your Pricing?</h2>

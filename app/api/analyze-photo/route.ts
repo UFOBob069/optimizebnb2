@@ -7,7 +7,7 @@ import * as path from 'path';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'your-api-key',
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 // Function to find Chrome executable path based on OS
@@ -80,7 +80,7 @@ async function findChromePath() {
 }
 
 // Function to scrape photos from Airbnb listing
-async function scrapeAirbnbPhotos(url) {
+async function scrapeAirbnbPhotos(url: string) {
   console.log(`Starting to scrape photos from Airbnb listing: ${url}`);
   
   try {
@@ -89,8 +89,8 @@ async function scrapeAirbnbPhotos(url) {
     console.log(`Chrome executable path: ${executablePath || 'Not found, using default'}`);
     
     // Launch browser with or without executablePath
-    const launchOptions = {
-      headless: 'new',
+    const launchOptions: any = {
+      headless: 'new' as 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     };
     
@@ -132,30 +132,51 @@ async function scrapeAirbnbPhotos(url) {
 }
 
 // Function to analyze a photo using OpenAI Vision
-async function analyzePhotoWithAI(photoUrl) {
-  console.log(`Analyzing photo: ${photoUrl}`);
+async function analyzePhotoWithAI(photoUrl: string) {
+  console.log(`Analyzing photo with OpenAI Vision API`);
   
   try {
+    // Validate that we have an API key
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OpenAI API key is not configured');
+    }
+    
+    // Log that we're making the API call
+    console.log('Making API call to OpenAI Vision...');
+    
     const response = await openai.chat.completions.create({
-      model: "gpt-4-vision-preview",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are an expert Airbnb photographer and property stylist. Analyze the provided photo of an Airbnb listing and provide detailed feedback on its quality, composition, lighting, staging, and overall appeal to potential guests. Be specific and actionable in your feedback."
+          content: "You are an expert Airbnb photographer and property stylist who appreciates the effort hosts put into their listings. Analyze the provided photo of an Airbnb listing and provide detailed feedback in a structured format with clear sections. Be generous and encouraging in your assessment, focusing on the positive aspects while providing constructive suggestions for improvement.\n\nYour response should follow this exact format:\n\n1. STRENGTHS:\n- [Strength point 1]\n- [Strength point 2]\n- [Strength point 3]\n\n2. AREAS FOR IMPROVEMENT:\n- [Improvement point 1]\n- [Improvement point 2]\n- [Improvement point 3]\n\n3. RECOMMENDATIONS:\n- [Recommendation 1]\n- [Recommendation 2]\n- [Recommendation 3]\n\n4. CATEGORY SCORES:\n- Lighting: [7-10]/10\n- Composition: [7-10]/10\n- Staging: [7-10]/10\n- Detail: [7-10]/10\n\nEach bullet point should be a complete, actionable statement without labels or prefixes like 'Lighting:' or 'Composition:'. Be specific and actionable in your feedback, but maintain a positive and encouraging tone throughout."
         },
         {
           role: "user",
           content: [
-            { type: "text", text: "Please analyze this Airbnb listing photo and provide detailed feedback:" },
-            { type: "image_url", image_url: { url: photoUrl } }
+            { type: "text", text: "Please analyze this Airbnb listing photo and provide detailed feedback following the exact format specified. Remember to be generous in your scoring and focus on the positive aspects of the photo:" },
+            { 
+              type: "image_url", 
+              image_url: { 
+                url: photoUrl,
+                detail: "high"
+              } 
+            }
           ]
         }
       ],
       max_tokens: 1000,
     });
     
+    // Log successful API response
+    console.log('Successfully received response from OpenAI Vision');
+    
     const analysisText = response.choices[0].message.content;
-    console.log('Analysis completed');
+    if (!analysisText) {
+      throw new Error('Empty response from OpenAI');
+    }
+    
+    console.log('Analysis text received, extracting structured data');
     
     // Parse the analysis text to extract structured data
     const strengths = extractStrengths(analysisText);
@@ -163,6 +184,8 @@ async function analyzePhotoWithAI(photoUrl) {
     const recommendations = extractRecommendations(analysisText);
     const categoryScores = calculateCategoryScores(analysisText);
     const overallScore = calculateOverallScore(categoryScores);
+    
+    console.log('Analysis completed successfully');
     
     return {
       overallScore,
@@ -172,29 +195,37 @@ async function analyzePhotoWithAI(photoUrl) {
       categoryScores,
       fullAnalysis: analysisText
     };
-  } catch (error) {
-    console.error('Error analyzing photo with OpenAI:', error);
+  } catch (error: any) {
+    console.error('Error in analyzePhotoWithAI:', error);
     throw error;
   }
 }
 
 // Helper function to extract strengths from analysis text
 function extractStrengths(text) {
-  // Look for strengths, positives, good aspects in the text
+  // Look for strengths section in the text
   const strengthPatterns = [
-    /strengths?:?(.*?)(?=weaknesses|improvements|areas for improvement|recommendations|$)/is,
-    /positives?:?(.*?)(?=negatives|weaknesses|improvements|recommendations|$)/is,
-    /what works:?(.*?)(?=what doesn't work|improvements|recommendations|$)/is
+    /strengths:?\s*((?:[-•*].*\n?)+)/i,
+    /1\.?\s*strengths:?\s*((?:[-•*].*\n?)+)/i,
+    /strengths?:?(.*?)(?=areas for improvement|improvements|recommendations|category scores|$)/is
   ];
   
   for (const pattern of strengthPatterns) {
     const match = text.match(pattern);
     if (match && match[1]) {
-      // Extract bullet points or sentences
+      // Extract bullet points
       const strengthText = match[1].trim();
-      const bulletPoints = strengthText.split(/\n|•|\.(?=\s|$)/).filter(point => 
-        point.trim().length > 10 && !point.includes('weakness') && !point.includes('improvement')
-      ).map(point => point.trim().replace(/^[-*•]/, '').trim());
+      // Split by bullet points or newlines
+      const bulletPoints = strengthText
+        .split(/\n|(?=[-•*])/)
+        .map(point => point.trim().replace(/^[-•*]\s*/, '').trim())
+        .filter(point => 
+          point.length > 5 && 
+          !point.toLowerCase().includes('strengths:') &&
+          !point.toLowerCase().match(/^\d+\.?\s*strengths:?/) &&
+          !point.toLowerCase().includes('lighting:') &&
+          !point.toLowerCase().includes('composition:')
+        );
       
       if (bulletPoints.length > 0) {
         return bulletPoints.slice(0, 5); // Limit to 5 strengths
@@ -203,33 +234,47 @@ function extractStrengths(text) {
   }
   
   // Fallback: Look for positive keywords and extract sentences containing them
-  const positiveKeywords = ['good', 'great', 'excellent', 'well', 'nice', 'appealing', 'attractive', 'effective'];
+  const positiveKeywords = ['good', 'great', 'excellent', 'well', 'nice', 'appealing', 'attractive', 'effective', 'beautiful'];
+  const avoidKeywords = ['improvement', 'weakness', 'issue', 'problem', 'recommendation'];
   const sentences = text.split(/\.(?=\s|$)/).filter(s => s.trim().length > 0);
-  const strengthSentences = sentences.filter(sentence => 
-    positiveKeywords.some(keyword => sentence.toLowerCase().includes(keyword))
-  ).map(s => s.trim());
+  
+  // Filter sentences that contain positive keywords but not negative or recommendation keywords
+  const strengthSentences = sentences.filter(sentence => {
+    const lowerSentence = sentence.toLowerCase();
+    return positiveKeywords.some(keyword => lowerSentence.includes(keyword)) &&
+           !avoidKeywords.some(keyword => lowerSentence.includes(keyword));
+  }).map(s => s.trim());
   
   return strengthSentences.slice(0, 3); // Limit to 3 strengths
 }
 
 // Helper function to extract areas for improvement from analysis text
 function extractImprovements(text) {
-  // Look for weaknesses, improvements, issues in the text
+  // Look for areas for improvement section in the text
   const improvementPatterns = [
-    /weaknesses?:?(.*?)(?=strengths|recommendations|conclusion|$)/is,
-    /improvements?:?(.*?)(?=strengths|recommendations|conclusion|$)/is,
-    /areas for improvement:?(.*?)(?=strengths|recommendations|conclusion|$)/is,
-    /what doesn't work:?(.*?)(?=what works|recommendations|conclusion|$)/is
+    /areas for improvement:?\s*((?:[-•*].*\n?)+)/i,
+    /2\.?\s*areas for improvement:?\s*((?:[-•*].*\n?)+)/i,
+    /improvements:?\s*((?:[-•*].*\n?)+)/i,
+    /areas for improvement:?(.*?)(?=strengths|recommendations|category scores|$)/is
   ];
   
   for (const pattern of improvementPatterns) {
     const match = text.match(pattern);
     if (match && match[1]) {
-      // Extract bullet points or sentences
+      // Extract bullet points
       const improvementText = match[1].trim();
-      const bulletPoints = improvementText.split(/\n|•|\.(?=\s|$)/).filter(point => 
-        point.trim().length > 10
-      ).map(point => point.trim().replace(/^[-*•]/, '').trim());
+      // Split by bullet points or newlines
+      const bulletPoints = improvementText
+        .split(/\n|(?=[-•*])/)
+        .map(point => point.trim().replace(/^[-•*]\s*/, '').trim())
+        .filter(point => 
+          point.length > 5 && 
+          !point.toLowerCase().includes('areas for improvement:') &&
+          !point.toLowerCase().match(/^\d+\.?\s*areas for improvement:?/) &&
+          !point.toLowerCase().includes('improvements:') &&
+          !point.toLowerCase().includes('###') &&
+          !point.toLowerCase().includes('specific')
+        );
       
       if (bulletPoints.length > 0) {
         return bulletPoints.slice(0, 5); // Limit to 5 improvements
@@ -239,94 +284,222 @@ function extractImprovements(text) {
   
   // Fallback: Look for negative keywords and extract sentences containing them
   const negativeKeywords = ['improve', 'issue', 'problem', 'lack', 'missing', 'better', 'could', 'should'];
+  const avoidKeywords = ['recommend', 'suggestion', 'tip', 'try'];
   const sentences = text.split(/\.(?=\s|$)/).filter(s => s.trim().length > 0);
-  const improvementSentences = sentences.filter(sentence => 
-    negativeKeywords.some(keyword => sentence.toLowerCase().includes(keyword))
-  ).map(s => s.trim());
+  
+  // Filter sentences that contain negative keywords but not recommendation keywords
+  const improvementSentences = sentences.filter(sentence => {
+    const lowerSentence = sentence.toLowerCase();
+    return negativeKeywords.some(keyword => lowerSentence.includes(keyword)) &&
+           !avoidKeywords.some(keyword => lowerSentence.includes(keyword));
+  }).map(s => s.trim());
   
   return improvementSentences.slice(0, 3); // Limit to 3 improvements
 }
 
 // Helper function to extract recommendations from analysis text
-function extractRecommendations(text) {
-  // Look for recommendations, suggestions in the text
+function extractRecommendations(text: string) {
+  // Look for recommendations section in the text
   const recommendationPatterns = [
-    /recommendations?:?(.*?)(?=conclusion|$)/is,
-    /suggestions?:?(.*?)(?=conclusion|$)/is,
-    /tips:?(.*?)(?=conclusion|$)/is
+    /recommendations:?\s*((?:[-•*].*\n?)+)/i,
+    /3\.?\s*recommendations:?\s*((?:[-•*].*\n?)+)/i,
+    /recommendations:?(.*?)(?=strengths|areas for improvement|category scores|$)/is
   ];
   
   for (const pattern of recommendationPatterns) {
     const match = text.match(pattern);
     if (match && match[1]) {
-      // Extract bullet points or sentences
+      // Extract bullet points
       const recommendationText = match[1].trim();
-      const bulletPoints = recommendationText.split(/\n|•|\.(?=\s|$)/).filter(point => 
-        point.trim().length > 10
-      ).map(point => point.trim().replace(/^[-*•]/, '').trim());
       
-      if (bulletPoints.length > 0) {
-        return bulletPoints.slice(0, 5); // Limit to 5 recommendations
+      // First try to extract bullet points by looking for actual bullet markers
+      // @ts-ignore - ES2018 flag is needed for 's' flag in regex
+      const bulletRegex = /[-•*]\s*(.*?)(?=[-•*]|$)/gs;
+      const bulletMatches = [...recommendationText.matchAll(bulletRegex)];
+      
+      if (bulletMatches.length > 0) {
+        const bulletPoints = bulletMatches
+          .map(m => m[1].trim())
+          .filter((point: string) => 
+            point.length > 5 && 
+            !point.toLowerCase().includes('recommendations:') &&
+            !point.toLowerCase().match(/^\d+\.?\s*recommendations:?/)
+          );
+        
+        if (bulletPoints.length > 0) {
+          return bulletPoints.slice(0, 5); // Limit to 5 recommendations
+        }
+      }
+      
+      // If bullet extraction failed, try splitting by newlines
+      // Split by newlines but preserve multi-line recommendations
+      const lines = recommendationText.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+      
+      const recommendations: string[] = [];
+      let currentRecommendation = '';
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].replace(/^[-•*]\s*/, '').trim();
+        
+        // Skip headers or empty lines
+        if (line.length < 5 || 
+            line.toLowerCase().includes('recommendations:') ||
+            line.toLowerCase().match(/^\d+\.?\s*recommendations:?/)) {
+          continue;
+        }
+        
+        // If line starts with a capital letter and previous line doesn't end with punctuation,
+        // it might be a continuation
+        if (i > 0 && 
+            !currentRecommendation.endsWith('.') && 
+            !currentRecommendation.endsWith('!') && 
+            !currentRecommendation.endsWith('?') &&
+            line.charAt(0) === line.charAt(0).toLowerCase()) {
+          currentRecommendation += ' ' + line;
+        } else {
+          // If we have a current recommendation, save it before starting a new one
+          if (currentRecommendation) {
+            recommendations.push(currentRecommendation);
+          }
+          currentRecommendation = line;
+        }
+      }
+      
+      // Add the last recommendation if there is one
+      if (currentRecommendation) {
+        recommendations.push(currentRecommendation);
+      }
+      
+      if (recommendations.length > 0) {
+        return recommendations.slice(0, 5); // Limit to 5 recommendations
       }
     }
   }
   
   // Fallback: Look for recommendation keywords and extract sentences containing them
-  const recommendationKeywords = ['recommend', 'suggest', 'try', 'consider', 'add', 'improve by', 'enhance'];
-  const sentences = text.split(/\.(?=\s|$)/).filter(s => s.trim().length > 0);
-  const recommendationSentences = sentences.filter(sentence => 
-    recommendationKeywords.some(keyword => sentence.toLowerCase().includes(keyword))
-  ).map(s => s.trim());
+  const recommendationKeywords = ['recommend', 'suggest', 'try', 'consider', 'add', 'improve by', 'enhance', 'include'];
+  const avoidKeywords = ['area for improvement', 'weakness', 'issue', 'problem'];
+  const sentences = text.split(/\.(?=\s|$)/).filter((s: string) => s.trim().length > 0);
   
-  return recommendationSentences.slice(0, 4); // Limit to 4 recommendations
+  // Filter sentences that contain recommendation keywords but not improvement keywords
+  const recommendationSentences = sentences.filter((sentence: string) => {
+    const lowerSentence = sentence.toLowerCase();
+    return recommendationKeywords.some(keyword => lowerSentence.includes(keyword)) &&
+           !avoidKeywords.some(keyword => lowerSentence.includes(keyword));
+  }).map((s: string) => s.trim() + (s.endsWith('.') ? '' : '.'));
+  
+  // Remove any duplicates that might be in the improvements section
+  return recommendationSentences
+    .filter((rec, index, self) => self.indexOf(rec) === index)
+    .slice(0, 4); // Limit to 4 recommendations
 }
 
 // Helper function to calculate category scores from analysis text
 function calculateCategoryScores(text) {
+  // First try to extract scores from the structured format
+  const categoryScorePattern = /category scores:?\s*((?:[-•*].*\n?)+)/i;
+  const match = text.match(categoryScorePattern);
+  
+  if (match && match[1]) {
+    const scoreText = match[1].trim();
+    const scoreLines = scoreText.split(/\n|(?=[-•*])/).map(line => line.trim().replace(/^[-•*]\s*/, '').trim());
+    
+    const extractedScores = [];
+    const scoreRegex = /(lighting|composition|staging|detail|angle|framing|color|exposure|quality):\s*(\d+)(?:\/10)?/i;
+    
+    for (const line of scoreLines) {
+      const scoreMatch = line.match(scoreRegex);
+      if (scoreMatch) {
+        const category = scoreMatch[1].charAt(0).toUpperCase() + scoreMatch[1].slice(1);
+        const score = parseInt(scoreMatch[2], 10);
+        if (score >= 0 && score <= 10) {
+          extractedScores.push({ name: category, score });
+        }
+      }
+    }
+    
+    if (extractedScores.length > 0) {
+      return extractedScores;
+    }
+  }
+  
+  // Fallback to the original method if structured extraction fails
   const categories = [
     { name: 'Lighting', keywords: ['light', 'bright', 'shadow', 'exposure', 'dark'] },
     { name: 'Composition', keywords: ['composition', 'angle', 'perspective', 'framing', 'centered'] },
-    { name: 'Staging', keywords: ['staging', 'furniture', 'decor', 'arrangement', 'clutter'] },
-    { name: 'Color Balance', keywords: ['color', 'tone', 'white balance', 'warm', 'cool'] },
-    { name: 'Cleanliness', keywords: ['clean', 'tidy', 'spotless', 'mess', 'dust'] },
-    { name: 'Detail Quality', keywords: ['detail', 'resolution', 'sharp', 'blur', 'focus'] }
+    { name: 'Staging', keywords: ['staging', 'furniture', 'decor', 'arrangement', 'styled'] },
+    { name: 'Detail', keywords: ['detail', 'clarity', 'sharpness', 'focus', 'resolution'] }
   ];
   
+  // Initialize scores
   const scores = categories.map(category => {
-    // Default score
-    let score = 7; // Start with a neutral score
-    
-    // Look for explicit scores in the text
-    const scorePattern = new RegExp(`${category.name}[^.]*?([0-9]|10)\\s*\\/\\s*10`, 'i');
-    const scoreMatch = text.match(scorePattern);
-    if (scoreMatch && scoreMatch[1]) {
-      return { name: category.name, score: parseInt(scoreMatch[1]) };
-    }
-    
-    // Calculate score based on keyword analysis
-    let positiveCount = 0;
-    let negativeCount = 0;
-    
-    // Check for positive and negative mentions of each keyword
-    category.keywords.forEach(keyword => {
-      const positivePattern = new RegExp(`(good|great|excellent|well|nice)\\s+${keyword}|${keyword}\\s+(is|are)\\s+(good|great|excellent|well|nice)`, 'i');
-      const negativePattern = new RegExp(`(poor|bad|inadequate|lack\\s+of|missing|needs?\\s+better)\\s+${keyword}|${keyword}\\s+(is|are)\\s+(poor|bad|inadequate|lacking)`, 'i');
-      
-      if (positivePattern.test(text)) positiveCount++;
-      if (negativePattern.test(text)) negativeCount++;
-    });
-    
-    // Adjust score based on positive and negative mentions
-    score += positiveCount;
-    score -= negativeCount;
-    
-    // Ensure score is within 1-10 range
-    score = Math.max(1, Math.min(10, score));
-    
-    return { name: category.name, score };
+    return { name: category.name, score: 0, mentions: 0 };
   });
   
-  return scores;
+  // Look for explicit scores in the text
+  for (const category of scores) {
+    const scorePattern = new RegExp(`${category.name}\\s*:\\s*(\\d+)(?:\\s*\\/\\s*10)?`, 'i');
+    const match = text.match(scorePattern);
+    if (match && match[1]) {
+      const score = parseInt(match[1], 10);
+      if (score >= 0 && score <= 10) {
+        category.score = score;
+        category.mentions = 1; // We found an explicit score
+      }
+    }
+  }
+  
+  // For categories without explicit scores, analyze the text
+  const sentences = text.split(/\.(?=\s|$)/).filter(s => s.trim().length > 0);
+  
+  for (const sentence of sentences) {
+    const lowerSentence = sentence.toLowerCase();
+    
+    for (let i = 0; i < categories.length; i++) {
+      if (scores[i].mentions > 0) continue; // Skip if we already have an explicit score
+      
+      const category = categories[i];
+      const hasKeyword = category.keywords.some(keyword => lowerSentence.includes(keyword));
+      
+      if (hasKeyword) {
+        scores[i].mentions++;
+        
+        // Check for positive or negative sentiment
+        const positiveWords = ['good', 'great', 'excellent', 'well', 'nice', 'appealing', 'effective'];
+        const negativeWords = ['poor', 'bad', 'inadequate', 'lacking', 'insufficient', 'problem'];
+        
+        const hasPositive = positiveWords.some(word => lowerSentence.includes(word));
+        const hasNegative = negativeWords.some(word => lowerSentence.includes(word));
+        
+        if (hasPositive && !hasNegative) {
+          scores[i].score += 2;
+        } else if (hasNegative && !hasPositive) {
+          scores[i].score -= 1;
+        } else if (hasPositive && hasNegative) {
+          scores[i].score += 1; // Mixed sentiment
+        } else {
+          scores[i].score += 1; // Neutral mention
+        }
+      }
+    }
+  }
+  
+  // Normalize scores
+  return scores.map(category => {
+    if (category.mentions === 0) {
+      return { name: category.name, score: 7 }; // Default score if not mentioned
+    }
+    
+    // Calculate score based on mentions and sentiment
+    let normalizedScore = 5 + category.score;
+    
+    // Ensure score is within 1-10 range
+    normalizedScore = Math.max(1, Math.min(10, normalizedScore));
+    
+    return { name: category.name, score: normalizedScore };
+  });
 }
 
 // Helper function to calculate overall score from category scores
@@ -334,57 +507,70 @@ function calculateOverallScore(categoryScores) {
   const sum = categoryScores.reduce((total, category) => total + category.score, 0);
   const average = sum / categoryScores.length;
   
-  // Convert to a 0-100 scale
-  return Math.round(average * 10);
+  // Apply a more generous curve to the score
+  // This will boost scores, especially in the middle to upper range
+  let adjustedScore;
+  
+  if (average >= 7) {
+    // For good photos (7+), give an extra boost
+    adjustedScore = Math.min(10, average + 0.8);
+  } else if (average >= 5) {
+    // For average photos, give a moderate boost
+    adjustedScore = average + 0.5;
+  } else {
+    // For below average photos, give a small boost
+    adjustedScore = average + 0.3;
+  }
+  
+  // Convert to a 0-100 scale with a minimum of 60
+  const finalScore = Math.max(60, Math.round(adjustedScore * 10));
+  
+  return finalScore;
 }
 
 // Function to generate a simulated analysis when OpenAI is not available
 function generateSimulatedAnalysis() {
   const strengths = [
-    "Good natural lighting that illuminates the space well",
-    "Clean and tidy space with minimal clutter",
-    "Attractive focal point that draws the viewer's attention",
-    "Warm color palette that creates an inviting atmosphere",
-    "Good use of space showing the room's dimensions"
+    "Excellent natural lighting that beautifully illuminates the space",
+    "Pristine and well-organized space that appears inviting and comfortable",
+    "Strong architectural features that create visual interest and character",
+    "Warm and appealing color palette that enhances the property's charm",
+    "Thoughtful composition that effectively showcases the property's best features"
   ];
   
   const improvements = [
-    "Composition could be improved with better framing",
-    "Some shadows create dark areas that hide details",
-    "Personal items should be removed for a more neutral presentation",
-    "White balance is slightly off giving a yellowish tint",
-    "Some areas appear cluttered and distracting"
+    "Minor adjustments to composition could further enhance the visual appeal",
+    "Some areas could benefit from additional lighting to highlight details",
+    "Consider minimizing a few personal items for a more universal appeal",
+    "Slight color balance adjustments could enhance the natural tones",
+    "A few strategic decor elements could add more character to the space"
   ];
   
   const recommendations = [
-    "Take photos during the golden hour (early morning or late afternoon) for optimal lighting",
-    "Use a wider angle lens to capture more of the space in each shot",
-    "Remove personal items and declutter before taking photos",
-    "Consider using a tripod for sharper images and consistent angles",
-    "Add some strategic staging elements like fresh flowers or accent pillows"
+    "Capture photos during golden hour for even more stunning natural lighting",
+    "Use a slightly wider angle to include more context of the beautiful space",
+    "Add a few carefully selected decor items to enhance the property's style",
+    "Consider taking additional photos from different angles to showcase versatility",
+    "Highlight unique features that set this property apart from others"
   ];
   
   const categoryScores = [
-    { name: "Lighting", score: Math.floor(Math.random() * 3) + 6 },
-    { name: "Composition", score: Math.floor(Math.random() * 3) + 5 },
-    { name: "Staging", score: Math.floor(Math.random() * 3) + 6 },
-    { name: "Color Balance", score: Math.floor(Math.random() * 3) + 5 },
-    { name: "Cleanliness", score: Math.floor(Math.random() * 2) + 7 },
-    { name: "Detail Quality", score: Math.floor(Math.random() * 3) + 6 }
+    { name: "Lighting", score: Math.floor(Math.random() * 2) + 8 },
+    { name: "Composition", score: Math.floor(Math.random() * 2) + 7 },
+    { name: "Staging", score: Math.floor(Math.random() * 2) + 8 },
+    { name: "Detail", score: Math.floor(Math.random() * 2) + 7 }
   ];
   
-  const overallScore = Math.floor(
-    categoryScores.reduce((sum, category) => sum + category.score, 0) / 
-    categoryScores.length * 10
-  );
+  // Calculate overall score
+  const overallScore = calculateOverallScore(categoryScores);
   
+  // Return the simulated analysis
   return {
-    overallScore,
-    strengths: strengths.slice(0, 3 + Math.floor(Math.random() * 3)),
-    improvements: improvements.slice(0, 2 + Math.floor(Math.random() * 3)),
-    recommendations: recommendations.slice(0, 3 + Math.floor(Math.random() * 2)),
+    strengths: strengths.slice(0, 3 + Math.floor(Math.random() * 2)), // 3-4 strengths
+    improvements: improvements.slice(0, 2 + Math.floor(Math.random() * 2)), // 2-3 improvements
+    recommendations: recommendations.slice(0, 2 + Math.floor(Math.random() * 2)), // 2-3 recommendations
     categoryScores,
-    fullAnalysis: "This is a simulated analysis."
+    overallScore
   };
 }
 
@@ -426,14 +612,30 @@ export async function POST(request) {
       
       // Analyze the photo
       try {
-        if (process.env.OPENAI_API_KEY) {
-          analysis = await analyzePhotoWithAI(photoUrl);
-        } else {
-          console.log('OpenAI API key not found, generating simulated analysis');
-          analysis = generateSimulatedAnalysis();
+        console.log('Sending photo to OpenAI for analysis...');
+        analysis = await analyzePhotoWithAI(photoUrl);
+        console.log('Successfully received analysis from OpenAI');
+      } catch (error: any) {
+        console.error('Error analyzing photo with OpenAI:', error);
+        
+        // Check if it's an API key issue
+        if (error.message && error.message.includes('API key')) {
+          return NextResponse.json({ 
+            error: 'OpenAI API key issue', 
+            message: 'There was an issue with the OpenAI API key. Please try again later or contact support.' 
+          }, { status: 500 });
         }
-      } catch (error) {
-        console.error('Error analyzing photo, falling back to simulation:', error);
+        
+        // Check if it's a model issue
+        if (error.message && (error.message.includes('model') || error.message.includes('not found'))) {
+          return NextResponse.json({ 
+            error: 'OpenAI model issue', 
+            message: 'There was an issue with the AI model. Please try again later or contact support.' 
+          }, { status: 500 });
+        }
+        
+        // Fall back to simulated analysis
+        console.log('Falling back to simulated analysis');
         analysis = generateSimulatedAnalysis();
       }
     } else if (method === 'scrape') {
@@ -471,14 +673,30 @@ export async function POST(request) {
       console.log(`Analyzing first photo: ${photoUrl}`);
       
       try {
-        if (process.env.OPENAI_API_KEY) {
-          analysis = await analyzePhotoWithAI(photoUrl);
-        } else {
-          console.log('OpenAI API key not found, generating simulated analysis');
-          analysis = generateSimulatedAnalysis();
+        console.log('Sending photo to OpenAI for analysis...');
+        analysis = await analyzePhotoWithAI(photoUrl);
+        console.log('Successfully received analysis from OpenAI');
+      } catch (error: any) {
+        console.error('Error analyzing photo with OpenAI:', error);
+        
+        // Check if it's an API key issue
+        if (error.message && error.message.includes('API key')) {
+          return NextResponse.json({ 
+            error: 'OpenAI API key issue', 
+            message: 'There was an issue with the OpenAI API key. Please try again later or contact support.' 
+          }, { status: 500 });
         }
-      } catch (error) {
-        console.error('Error analyzing photo, falling back to simulation:', error);
+        
+        // Check if it's a model issue
+        if (error.message && (error.message.includes('model') || error.message.includes('not found'))) {
+          return NextResponse.json({ 
+            error: 'OpenAI model issue', 
+            message: 'There was an issue with the AI model. Please try again later or contact support.' 
+          }, { status: 500 });
+        }
+        
+        // Fall back to simulated analysis
+        console.log('Falling back to simulated analysis');
         analysis = generateSimulatedAnalysis();
       }
     } else {
