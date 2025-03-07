@@ -12,7 +12,7 @@ interface GuideSection {
 interface Guide {
   propertyName: string;
   location: string;
-  sections: GuideSection[];
+  sections: Record<string, string>;
 }
 
 interface SectionOption {
@@ -31,15 +31,10 @@ export default function WelcomeGuidePage() {
   const [error, setError] = useState<string | null>(null);
   const [guide, setGuide] = useState<Guide | null>(null);
   const [step, setStep] = useState<"form" | "processing" | "result">("form");
-  const [selectedSections, setSelectedSections] = useState<string[]>([
-    'title',
-    'description',
-    'amenities',
-    'house_rules',
-    'local_area',
-    'host_bio'
-  ]);
+  const [selectedSections, setSelectedSections] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [processingTime, setProcessingTime] = useState(0);
+  const [currentStep, setCurrentStep] = useState(1);
   
   // Available sections that can be included in the guide
   const availableSections: SectionOption[] = [
@@ -100,8 +95,25 @@ export default function WelcomeGuidePage() {
     setError(null);
     setLoading(true);
     setStep("processing");
+    setProcessingTime(0);
+    setCurrentStep(1);
+    
+    // Start the processing timer
+    const processingTimer = setInterval(() => {
+      setProcessingTime(prevTime => prevTime + 1);
+    }, 1000);
     
     try {
+      // Simulate step 1 completion after 10 seconds
+      setTimeout(() => {
+        setCurrentStep(2);
+      }, 10000);
+      
+      // Simulate step 2 completion after 30 seconds
+      setTimeout(() => {
+        setCurrentStep(3);
+      }, 30000);
+      
       // Call our API endpoint to generate the guide
       const response = await fetch('/api/generate-guide', {
         method: 'POST',
@@ -115,6 +127,9 @@ export default function WelcomeGuidePage() {
           sections: selectedSections 
         }),
       });
+      
+      // Clear the timer
+      clearInterval(processingTimer);
       
       if (!response.ok) {
         const errorData = await response.json();
@@ -132,6 +147,9 @@ export default function WelcomeGuidePage() {
       }
       
     } catch (err) {
+      // Clear the timer
+      clearInterval(processingTimer);
+      
       console.error('Error generating guide:', err);
       setError(err instanceof Error ? err.message : "Failed to generate guide. Please try again later.");
       setStep("form");
@@ -141,35 +159,72 @@ export default function WelcomeGuidePage() {
   };
 
   const renderProcessingSteps = () => {
+    // Calculate estimated time remaining (about 2 minutes total)
+    const totalEstimatedTime = 120; // 2 minutes in seconds
+    const remainingTime = Math.max(0, totalEstimatedTime - processingTime);
+    const minutes = Math.floor(remainingTime / 60);
+    const seconds = remainingTime % 60;
+    
+    // Calculate progress percentage
+    const progressPercentage = Math.min(100, (processingTime / totalEstimatedTime) * 100);
+    
     return (
       <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl mx-auto">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Generating Your Custom Welcome Guide</h2>
+        
+        {/* Progress bar */}
+        <div className="mb-6">
+          <div className="w-full bg-gray-200 rounded-full h-2.5">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out" 
+              style={{ width: `${progressPercentage}%` }}
+            ></div>
+          </div>
+          <div className="flex justify-between mt-2 text-sm text-gray-600">
+            <span>Started</span>
+            <span>
+              {minutes > 0 ? `${minutes}m ` : ''}{seconds}s remaining
+            </span>
+          </div>
+        </div>
         
         <div className="space-y-6">
           <ProcessingStep 
             number={1} 
             title="Analyzing your Airbnb listing" 
             description="We're extracting information about your property, amenities, and location."
-            status={loading ? "active" : "complete"}
+            status={currentStep > 1 ? "complete" : "active"}
+            progress={currentStep > 1 ? 100 : Math.min(100, (processingTime / 10) * 100)}
           />
           
           <ProcessingStep 
             number={2} 
             title="Gathering local information" 
             description="Finding the best restaurants, attractions, and essential services near your property."
-            status={loading && step === "processing" ? "active" : loading ? "waiting" : "complete"}
+            status={currentStep > 2 ? "complete" : currentStep === 2 ? "active" : "waiting"}
+            progress={currentStep > 2 ? 100 : currentStep < 2 ? 0 : Math.min(100, ((processingTime - 10) / 20) * 100)}
           />
           
           <ProcessingStep 
             number={3} 
             title="Creating your custom guide" 
             description="Our AI is writing a personalized welcome guide tailored to your property."
-            status={loading && guide ? "active" : loading ? "waiting" : guide ? "complete" : "waiting"}
+            status={guide ? "complete" : currentStep === 3 ? "active" : "waiting"}
+            progress={guide ? 100 : currentStep < 3 ? 0 : Math.min(100, ((processingTime - 30) / 90) * 100)}
           />
         </div>
         
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>This may take a minute or two. Please don&apos;t close this window.</p>
+        <div className="mt-8 text-center">
+          <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full">
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Processing... Please don't close this window</span>
+          </div>
+          <p className="mt-4 text-sm text-gray-500">
+            This process takes about 2 minutes to complete. We're using AI to create a personalized guide for your property.
+          </p>
         </div>
       </div>
     );
@@ -197,10 +252,12 @@ export default function WelcomeGuidePage() {
           </div>
           
           <div className="space-y-8">
-            {guide.sections.map((section, index) => (
+            {Object.entries(guide.sections).map(([key, content], index) => (
               <div key={index} className="border-b border-gray-200 pb-6 last:border-b-0">
-                <h3 className="text-xl font-semibold text-gray-800 mb-3">{section.title}</h3>
-                <div className="text-gray-600 whitespace-pre-line">{section.content}</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">
+                  {key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}
+                </h3>
+                <div className="text-gray-600 whitespace-pre-line">{content}</div>
               </div>
             ))}
           </div>
@@ -231,6 +288,13 @@ export default function WelcomeGuidePage() {
   // Only run client-side code after component has mounted
   useEffect(() => {
     setMounted(true);
+    
+    // Initialize with default selections
+    const defaultSections = availableSections
+      .filter(section => section.default)
+      .map(section => section.id);
+    
+    setSelectedSections(defaultSections);
   }, []);
 
   // Ensure consistent rendering between server and client
@@ -247,13 +311,47 @@ export default function WelcomeGuidePage() {
           <span className="mr-2">←</span> Back to Home
         </Link>
         
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
             Welcome Guide Generator
           </h1>
           <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
             Create a professional welcome guide for your Airbnb guests with local recommendations and property information.
           </p>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-3xl mx-auto mb-12">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Why Create a Welcome Guide?</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-blue-800 mb-2">Enhance Guest Experience</h3>
+              <p className="text-gray-700">
+                A professional welcome guide helps guests feel at home and provides them with all the information they need for a comfortable stay.
+              </p>
+            </div>
+            
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-green-800 mb-2">Reduce Questions</h3>
+              <p className="text-gray-700">
+                Answer common questions before they&apos;re asked, reducing the number of messages and calls from guests during their stay.
+              </p>
+            </div>
+            
+            <div className="bg-amber-50 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-amber-800 mb-2">Highlight Local Attractions</h3>
+              <p className="text-gray-700">
+                Showcase the best restaurants, activities, and hidden gems in your area to help guests make the most of their trip.
+              </p>
+            </div>
+            
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-purple-800 mb-2">Better Reviews</h3>
+              <p className="text-gray-700">
+                Properties with comprehensive welcome guides tend to receive higher ratings and more positive reviews from satisfied guests.
+              </p>
+            </div>
+          </div>
         </div>
         
         {step === "form" && (
@@ -381,40 +479,6 @@ export default function WelcomeGuidePage() {
         {step === "processing" && renderProcessingSteps()}
         
         {step === "result" && renderGuide()}
-        
-        <div className="mt-16 bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-3xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Why Create a Welcome Guide?</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Enhance Guest Experience</h3>
-              <p className="text-gray-600">
-                A professional welcome guide helps guests feel at home and provides them with all the information they need for a comfortable stay.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Reduce Questions</h3>
-              <p className="text-gray-600">
-                Answer common questions before they&apos;re asked, reducing the number of messages and calls from guests during their stay.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Highlight Local Attractions</h3>
-              <p className="text-gray-600">
-                Showcase the best restaurants, activities, and hidden gems in your area to help guests make the most of their trip.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Better Reviews</h3>
-              <p className="text-gray-600">
-                Properties with comprehensive welcome guides tend to receive higher ratings and more positive reviews from satisfied guests.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -425,9 +489,10 @@ interface ProcessingStepProps {
   title: string;
   description: string;
   status: "waiting" | "active" | "complete";
+  progress: number; // 0-100 percentage
 }
 
-function ProcessingStep({ number, title, description, status }: ProcessingStepProps) {
+function ProcessingStep({ number, title, description, status, progress }: ProcessingStepProps) {
   return (
     <div className="flex items-start">
       <div className="flex-shrink-0 mr-4">
@@ -447,17 +512,32 @@ function ProcessingStep({ number, title, description, status }: ProcessingStepPr
           )}
         </div>
       </div>
-      <div>
-        <h3 className={`text-lg font-medium ${
-          status === "waiting" 
-            ? "text-gray-500" 
-            : status === "active"
-            ? "text-blue-600"
-            : "text-green-600"
-        }`}>
-          {title}
-        </h3>
+      <div className="flex-1">
+        <div className="flex justify-between items-center">
+          <h3 className={`text-lg font-medium ${
+            status === "waiting" 
+              ? "text-gray-500" 
+              : status === "active"
+              ? "text-blue-600"
+              : "text-green-600"
+          }`}>
+            {title}
+          </h3>
+          {status === "active" && (
+            <span className="text-sm text-blue-600 font-medium">{Math.round(progress)}%</span>
+          )}
+        </div>
         <p className="mt-1 text-sm text-gray-600">{description}</p>
+        
+        {/* Step progress bar */}
+        {status === "active" && (
+          <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2">
+            <div 
+              className="bg-blue-500 h-1.5 rounded-full transition-all duration-500 ease-in-out" 
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        )}
       </div>
     </div>
   );

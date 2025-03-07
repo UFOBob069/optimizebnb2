@@ -416,7 +416,7 @@ async function scrapeAirbnbListing(url: string) {
       if (!reviewsSection) {
         const reviewHeadings = Array.from(document.querySelectorAll('h2')).filter(h => 
           h.textContent?.toLowerCase().includes('review') || 
-          h.textContent?.toLowerCase().includes('rating'))
+          h.textContent?.toLowerCase().includes('rating')
         );
         
         if (reviewHeadings.length > 0) {
