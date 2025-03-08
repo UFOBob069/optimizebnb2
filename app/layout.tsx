@@ -30,7 +30,7 @@ export default function RootLayout({
                   OptimizeBnB.AI
                 </a>
                 <nav className="hidden sm:flex sm:space-x-8">
-                  <a href="/listing-analysis" className="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
+                  <a href="/analyze" className="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">
                     Listing Analysis
                   </a>
                   <a href="/photo-analysis" className="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium">

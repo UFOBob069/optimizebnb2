@@ -34,7 +34,7 @@ async function findChromePath() {
           await fs.access(windowsPath);
           console.log(`Found Chrome at: ${windowsPath}`);
           return windowsPath;
-        } catch (error) {
+        } catch {
           // Path doesn't exist, try next one
           console.log(`Path not found: ${windowsPath}`);
         }
@@ -46,7 +46,7 @@ async function findChromePath() {
         await fs.access(macPath);
         console.log(`Found Chrome at: ${macPath}`);
         return macPath;
-      } catch (error) {
+      } catch {
         console.log(`Mac Chrome path not found: ${macPath}`);
       }
     } else if (platform === 'linux') {
@@ -64,7 +64,7 @@ async function findChromePath() {
           await fs.access(linuxPath);
           console.log(`Found Chrome at: ${linuxPath}`);
           return linuxPath;
-        } catch (error) {
+        } catch {
           // Path doesn't exist, try next one
           console.log(`Path not found: ${linuxPath}`);
         }
@@ -89,8 +89,14 @@ async function scrapeAirbnbPhotos(url: string) {
     console.log(`Chrome executable path: ${executablePath || 'Not found, using default'}`);
     
     // Launch browser with or without executablePath
-    const launchOptions: any = {
-      headless: 'new' as 'new',
+    interface LaunchOptions {
+      headless: 'new';
+      args: string[];
+      executablePath?: string;
+    }
+    
+    const launchOptions: LaunchOptions = {
+      headless: 'new' as const,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     };
     
@@ -195,14 +201,14 @@ async function analyzePhotoWithAI(photoUrl: string) {
       categoryScores,
       fullAnalysis: analysisText
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in analyzePhotoWithAI:', error);
     throw error;
   }
 }
 
 // Helper function to extract strengths from analysis text
-function extractStrengths(text) {
+function extractStrengths(text: string) {
   // Look for strengths section in the text
   const strengthPatterns = [
     /strengths:?\s*((?:[-•*].*\n?)+)/i,
@@ -249,7 +255,7 @@ function extractStrengths(text) {
 }
 
 // Helper function to extract areas for improvement from analysis text
-function extractImprovements(text) {
+function extractImprovements(text: string) {
   // Look for areas for improvement section in the text
   const improvementPatterns = [
     /areas for improvement:?\s*((?:[-•*].*\n?)+)/i,
@@ -313,7 +319,7 @@ function extractRecommendations(text: string) {
       const recommendationText = match[1].trim();
       
       // First try to extract bullet points by looking for actual bullet markers
-      // @ts-ignore - ES2018 flag is needed for 's' flag in regex
+      // @ts-expect-error - ES2018 flag is needed for 's' flag in regex
       const bulletRegex = /[-•*]\s*(.*?)(?=[-•*]|$)/gs;
       const bulletMatches = [...recommendationText.matchAll(bulletRegex)];
       
@@ -397,7 +403,7 @@ function extractRecommendations(text: string) {
 }
 
 // Helper function to calculate category scores from analysis text
-function calculateCategoryScores(text) {
+function calculateCategoryScores(text: string) {
   // First try to extract scores from the structured format
   const categoryScorePattern = /category scores:?\s*((?:[-•*].*\n?)+)/i;
   const match = text.match(categoryScorePattern);
@@ -503,7 +509,7 @@ function calculateCategoryScores(text) {
 }
 
 // Helper function to calculate overall score from category scores
-function calculateOverallScore(categoryScores) {
+function calculateOverallScore(categoryScores: { name: string; score: number }[]) {
   const sum = categoryScores.reduce((total, category) => total + category.score, 0);
   const average = sum / categoryScores.length;
   
@@ -574,7 +580,7 @@ function generateSimulatedAnalysis() {
   };
 }
 
-export async function POST(request) {
+export async function POST(request: Request) {
   console.log('Received POST request to analyze photo');
   
   try {
@@ -615,11 +621,11 @@ export async function POST(request) {
         console.log('Sending photo to OpenAI for analysis...');
         analysis = await analyzePhotoWithAI(photoUrl);
         console.log('Successfully received analysis from OpenAI');
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error analyzing photo with OpenAI:', error);
         
         // Check if it's an API key issue
-        if (error.message && error.message.includes('API key')) {
+        if (error instanceof Error && error.message && error.message.includes('API key')) {
           return NextResponse.json({ 
             error: 'OpenAI API key issue', 
             message: 'There was an issue with the OpenAI API key. Please try again later or contact support.' 
@@ -627,7 +633,7 @@ export async function POST(request) {
         }
         
         // Check if it's a model issue
-        if (error.message && (error.message.includes('model') || error.message.includes('not found'))) {
+        if (error instanceof Error && (error.message && (error.message.includes('model') || error.message.includes('not found')))) {
           return NextResponse.json({ 
             error: 'OpenAI model issue', 
             message: 'There was an issue with the AI model. Please try again later or contact support.' 
@@ -672,15 +678,22 @@ export async function POST(request) {
       photoUrl = photoUrls[0];
       console.log(`Analyzing first photo: ${photoUrl}`);
       
+      if (!photoUrl) {
+        return NextResponse.json({ 
+          error: 'No valid photo URL found', 
+          message: 'Could not extract a valid photo URL from the listing.' 
+        }, { status: 400 });
+      }
+      
       try {
         console.log('Sending photo to OpenAI for analysis...');
         analysis = await analyzePhotoWithAI(photoUrl);
         console.log('Successfully received analysis from OpenAI');
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error analyzing photo with OpenAI:', error);
         
         // Check if it's an API key issue
-        if (error.message && error.message.includes('API key')) {
+        if (error instanceof Error && error.message && error.message.includes('API key')) {
           return NextResponse.json({ 
             error: 'OpenAI API key issue', 
             message: 'There was an issue with the OpenAI API key. Please try again later or contact support.' 
@@ -688,7 +701,7 @@ export async function POST(request) {
         }
         
         // Check if it's a model issue
-        if (error.message && (error.message.includes('model') || error.message.includes('not found'))) {
+        if (error instanceof Error && (error.message && (error.message.includes('model') || error.message.includes('not found')))) {
           return NextResponse.json({ 
             error: 'OpenAI model issue', 
             message: 'There was an issue with the AI model. Please try again later or contact support.' 

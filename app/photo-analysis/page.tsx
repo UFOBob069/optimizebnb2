@@ -1,40 +1,42 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import Link from "next/link";
 import Image from "next/image";
 
-interface PhotoFeedback {
-  imageUrl: string;
-  score: number;
-  feedback: string;
+interface Analysis {
+  overallScore: number;
+  strengths: string[];
   improvements: string[];
+  recommendations: string[];
+  categoryScores: { name: string; score: number }[];
 }
 
 export default function PhotoAnalysisPage() {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [preview, setPreview] = useState('');
-  const [analysis, setAnalysis] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'url'
-  const [airbnbUrl, setAirbnbUrl] = useState('');
-  const [email, setEmail] = useState('');
-  const [mounted, setMounted] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string>('');
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'upload' | 'url'>('upload');
+  const [airbnbUrl, setAirbnbUrl] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [mounted, setMounted] = useState<boolean>(false);
   
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result);
+        if (typeof reader.result === 'string') {
+          setPreview(reader.result);
+        }
       };
       reader.readAsDataURL(file);
       setAnalysis(null);
@@ -42,18 +44,20 @@ export default function PhotoAnalysisPage() {
     }
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('image/')) {
       setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreview(reader.result);
+        if (typeof reader.result === 'string') {
+          setPreview(reader.result);
+        }
       };
       reader.readAsDataURL(file);
       setAnalysis(null);
@@ -83,10 +87,12 @@ export default function PhotoAnalysisPage() {
     setError('');
 
     try {
-      let formData = new FormData();
+      const formData = new FormData();
       
       if (activeTab === 'upload') {
-        formData.append('photo', selectedFile);
+        if (selectedFile) {
+          formData.append('photo', selectedFile);
+        }
         formData.append('email', email);
         formData.append('method', 'upload');
       } else {
@@ -109,7 +115,7 @@ export default function PhotoAnalysisPage() {
       setAnalysis(data.analysis);
     } catch (err) {
       console.error('Error analyzing photo:', err);
-      setError(err.message || 'Failed to analyze photo. Please try again.');
+      setError(err instanceof Error ? err.message : 'Failed to analyze photo. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -124,6 +130,61 @@ export default function PhotoAnalysisPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-center mb-8">Airbnb Photo Analysis</h1>
+      
+      {/* Why Photo Quality Matters - Moved to top with enhanced design */}
+      <div className="mb-10 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl overflow-hidden shadow-lg">
+        <div className="p-6 md:p-8 text-white">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6">Why Photo Quality Matters</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 hover:bg-white/20 transition-all">
+              <div className="flex items-start">
+                <span className="text-3xl mr-3">📈</span>
+                <div>
+                  <h3 className="font-bold text-xl mb-2">Higher Booking Rates</h3>
+                  <p className="text-white/90">Listings with professional photos receive <span className="font-bold text-white">up to 24% more bookings</span> than those with amateur photos.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 hover:bg-white/20 transition-all">
+              <div className="flex items-start">
+                <span className="text-3xl mr-3">💰</span>
+                <div>
+                  <h3 className="font-bold text-xl mb-2">Premium Pricing</h3>
+                  <p className="text-white/90">Properties with excellent photography can command <span className="font-bold text-white">5-15% higher nightly rates</span> than similar properties.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 hover:bg-white/20 transition-all">
+              <div className="flex items-start">
+                <span className="text-3xl mr-3">⭐</span>
+                <div>
+                  <h3 className="font-bold text-xl mb-2">Guest Expectations</h3>
+                  <p className="text-white/90">Clear, accurate photos set proper expectations and lead to <span className="font-bold text-white">better reviews and fewer complaints</span>.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 hover:bg-white/20 transition-all">
+              <div className="flex items-start">
+                <span className="text-3xl mr-3">🔍</span>
+                <div>
+                  <h3 className="font-bold text-xl mb-2">Search Ranking</h3>
+                  <p className="text-white/90">Airbnb&apos;s algorithm <span className="font-bold text-white">favors listings with high-quality</span>, diverse photos that showcase the property well.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <a href="#analyze-form" className="inline-block bg-white text-blue-700 font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors">
+              Analyze Your Photos Now
+            </a>
+          </div>
+        </div>
+      </div>
       
       <div className="bg-white shadow-md rounded-lg p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">How It Works</h2>
@@ -148,7 +209,7 @@ export default function PhotoAnalysisPage() {
         </div>
       )}
       
-      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+      <div className="bg-white shadow-md rounded-lg p-6 mb-8" id="analyze-form">
         <div className="flex border-b mb-6">
           <button
             className={`px-4 py-2 font-medium ${
@@ -176,7 +237,7 @@ export default function PhotoAnalysisPage() {
           <div>
             <div
               className="border-2 border-dashed border-gray-300 rounded-lg p-8 mb-6 text-center cursor-pointer hover:bg-gray-50"
-              onClick={() => fileInputRef.current.click()}
+              onClick={() => fileInputRef.current?.click()}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
             >
@@ -341,28 +402,6 @@ export default function PhotoAnalysisPage() {
           </div>
         </div>
       )}
-      
-      <div className="mt-10 bg-blue-50 rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Why Photo Quality Matters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h3 className="font-medium text-lg mb-2">Higher Booking Rates</h3>
-            <p>Listings with professional, high-quality photos receive up to 24% more bookings than those with amateur photos.</p>
-          </div>
-          <div>
-            <h3 className="font-medium text-lg mb-2">Premium Pricing</h3>
-            <p>Properties with excellent photography can command 5-15% higher nightly rates than similar properties with poor photos.</p>
-          </div>
-          <div>
-            <h3 className="font-medium text-lg mb-2">Guest Expectations</h3>
-            <p>Clear, accurate photos set proper expectations and lead to better reviews and fewer complaints.</p>
-          </div>
-          <div>
-            <h3 className="font-medium text-lg mb-2">Search Ranking</h3>
-            <p>Airbnb's algorithm favors listings with high-quality, diverse photos that showcase the property well.</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 } 

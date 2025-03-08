@@ -728,9 +728,9 @@ async function generateGuideWithAI(propertyData, selectedSections) {
         if (useOpenAI) {
           // Generate content with OpenAI
           sections[section] = await generateContentWithOpenAI(section, propertyData);
-        } else {
+      } else {
           // Fallback to template-based content
-          sections[section] = generateTemplateContent(section, propertyData);
+        sections[section] = generateTemplateContent(section, propertyData);
         }
         
         // Generate simulated SEO analysis

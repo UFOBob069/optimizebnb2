@@ -89,6 +89,63 @@ export default function AnalyzePage() {
             </p>
           </div>
           
+          {/* Enhanced CTA Section */}
+          <div className="p-6 md:p-8 bg-blue-50 border-b border-gray-200">
+            <h2 className="text-xl font-semibold text-blue-800 mb-3">Why Analyze Your Listing?</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-6 w-6 text-blue-600 mt-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-gray-700 font-medium">Increase Bookings by 32%</p>
+                  <p className="text-gray-600 text-sm">Hosts who optimize their listings see an average 32% increase in bookings</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-6 w-6 text-blue-600 mt-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-gray-700 font-medium">Improve Guest Ratings</p>
+                  <p className="text-gray-600 text-sm">Identify and fix issues that could be affecting your guest experience and ratings</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-6 w-6 text-blue-600 mt-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-gray-700 font-medium">Stand Out From Competition</p>
+                  <p className="text-gray-600 text-sm">Get expert recommendations to make your listing more attractive than competitors</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="flex-shrink-0 h-6 w-6 text-blue-600 mt-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-gray-700 font-medium">Maximize Your Revenue</p>
+                  <p className="text-gray-600 text-sm">Discover opportunities to increase your nightly rate while maintaining high occupancy</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 font-medium flex items-center">
+                <span className="mr-2">⚡</span>
+                <span>Limited Time: Get a free comprehensive analysis of your listing today!</span>
+              </p>
+            </div>
+          </div>
+          
           <div className="p-6 md:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
@@ -106,64 +163,20 @@ export default function AnalyzePage() {
                 />
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Analysis Type
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <AnalysisTypeCard
-                    id="comprehensive"
-                    title="Comprehensive Analysis"
-                    description="Full analysis of your listing including pros, cons, and recommendations"
-                    selected={analysisType === "comprehensive"}
-                    onClick={() => setAnalysisType("comprehensive")}
-                  />
-                  <AnalysisTypeCard
-                    id="photos"
-                    title="Photo Analysis"
-                    description="Detailed feedback on your listing photos and how to improve them"
-                    selected={analysisType === "photos"}
-                    onClick={() => setAnalysisType("photos")}
-                  />
-                  <AnalysisTypeCard
-                    id="seo"
-                    title="SEO & Description"
-                    description="Optimize your title and description for search visibility"
-                    selected={analysisType === "seo"}
-                    onClick={() => setAnalysisType("seo")}
-                  />
-                  <AnalysisTypeCard
-                    id="reviews"
-                    title="Review Analysis"
-                    description="Analyze guest reviews to identify patterns and areas for improvement"
-                    selected={analysisType === "reviews"}
-                    onClick={() => setAnalysisType("reviews")}
-                  />
-                  <AnalysisTypeCard
-                    id="pricing"
-                    title="Pricing Strategy"
-                    description="Get data-driven pricing recommendations based on your market"
-                    selected={analysisType === "pricing"}
-                    onClick={() => setAnalysisType("pricing")}
-                  />
-                  <AnalysisTypeCard
-                    id="welcome-guide"
-                    title="Welcome Guide"
-                    description="Generate a custom welcome guide for your guests"
-                    selected={analysisType === "welcome-guide"}
-                    onClick={() => setAnalysisType("welcome-guide")}
-                  />
-                </div>
-              </div>
+              {/* Hidden input for analysis type */}
+              <input type="hidden" name="analysisType" value="comprehensive" />
               
               <div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors text-lg"
                 >
-                  {loading ? "Analyzing..." : "Analyze Listing"}
+                  {loading ? "Analyzing Your Listing..." : "Get Your Free Analysis Now →"}
                 </button>
+                <p className="text-center text-gray-500 text-sm mt-2">
+                  Takes less than 60 seconds • No credit card required
+                </p>
               </div>
             </form>
           </div>
@@ -224,19 +237,96 @@ export default function AnalyzePage() {
               
               <div className="pt-6 border-t border-gray-200">
                 <h3 className="text-lg font-semibold mb-4">What's Next?</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Link 
-                    href="/welcome-guide" 
-                    className="inline-block text-center bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-3 px-4 rounded-lg transition-colors"
-                  >
-                    Create a Welcome Guide
-                  </Link>
-                  <Link 
-                    href="/photo-analysis" 
-                    className="inline-block text-center bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-3 px-4 rounded-lg transition-colors"
-                  >
-                    Analyze Your Photos
-                  </Link>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Welcome Guide */}
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-4">
+                      <div className="text-3xl mb-2">📍</div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Custom Welcome Guide</h4>
+                      <p className="text-gray-600 text-sm mb-3">Create a personalized welcome guide based on your location. Highlight local attractions, emergency services, and house rules.</p>
+                      <Link 
+                        href="/welcome-guide" 
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                      >
+                        Create Guide <span className="ml-1">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  {/* Photo Analysis */}
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-4">
+                      <div className="text-3xl mb-2">📸</div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Photo Analysis</h4>
+                      <p className="text-gray-600 text-sm mb-3">Get professional feedback on your listing photos. Learn how to improve image quality, staging, and appeal to potential guests.</p>
+                      <Link 
+                        href="/photo-analysis" 
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                      >
+                        Analyze Photos <span className="ml-1">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  {/* SEO Optimization */}
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-4">
+                      <div className="text-3xl mb-2">🔍</div>
+                      <h4 className="font-semibold text-gray-900 mb-1">SEO Optimization</h4>
+                      <p className="text-gray-600 text-sm mb-3">Optimize your title and description to rank higher in search results and attract more bookings.</p>
+                      <Link 
+                        href="/seo-optimization" 
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                      >
+                        Optimize SEO <span className="ml-1">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  {/* Review Analysis */}
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-4">
+                      <div className="text-3xl mb-2">⭐</div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Review Analysis</h4>
+                      <p className="text-gray-600 text-sm mb-3">Gain valuable insights from your guest reviews. Identify patterns, sentiment trends, and areas for improvement to enhance your listing.</p>
+                      <Link 
+                        href="/review-analysis" 
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                      >
+                        Analyze Reviews <span className="ml-1">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  {/* Pricing Strategy */}
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-4">
+                      <div className="text-3xl mb-2">💰</div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Pricing Strategy</h4>
+                      <p className="text-gray-600 text-sm mb-3">Get data-driven recommendations for optimal pricing based on seasonality, local events, and competition.</p>
+                      <Link 
+                        href="/pricing-strategy" 
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                      >
+                        Optimize Pricing <span className="ml-1">→</span>
+                      </Link>
+                    </div>
+                  </div>
+                  
+                  {/* Amenity Recommendations */}
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div className="p-4">
+                      <div className="text-3xl mb-2">🛋️</div>
+                      <h4 className="font-semibold text-gray-900 mb-1">Amenity Recommendations</h4>
+                      <p className="text-gray-600 text-sm mb-3">Discover which amenities will have the biggest impact on your bookings and guest satisfaction.</p>
+                      <Link 
+                        href="/amenity-recommendations" 
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
+                      >
+                        Get Recommendations <span className="ml-1">→</span>
+                      </Link>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -18,9 +18,10 @@ import {
   Briefcase,
   TrendingUp,
   Users,
-  Award,
   ChevronRight,
-  Filter
+  Filter,
+  Shield,
+  Heart
 } from "lucide-react";
 
 // Guide Card Component
@@ -191,13 +192,11 @@ export default function GuidesPage() {
                 <input
                   type="text"
                   placeholder="Search for guides, tips, or topics..."
-                  className="w-full py-4 px-6 pr-12 rounded-full border-2 border-blue-400 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-gray-900"
+                  className="w-full py-3 px-5 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4">
-                  <Search className="h-5 w-5 text-gray-500" />
-                </div>
+                <Search className="absolute right-4 top-3.5 h-5 w-5 text-gray-400" />
               </div>
             </div>
           </div>
@@ -312,7 +311,7 @@ export default function GuidesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <GuideCard
                 title="Automating Your Airbnb Business"
-                description="Discover tools and strategies to automate guest communication, check-ins, cleaning schedules, and more."
+                description="Discover tools and strategies to automate guest communication, cleaning scheduling, and more to save time and reduce stress."
                 image="/guides/automation.jpg"
                 category="Business Tips"
                 readTime="16 min read"
@@ -335,8 +334,8 @@ export default function GuidesPage() {
                 description="Understand the tax implications of your Airbnb business and learn strategies to maximize deductions and minimize liability."
                 image="/guides/taxes.jpg"
                 category="Business Tips"
-                readTime="22 min read"
-                date="September 18, 2023"
+                readTime="12 min read"
+                date="February 8, 2023"
                 href="/guides/tax-strategies"
               />
             </div>
@@ -356,11 +355,11 @@ export default function GuidesPage() {
                     </div>
                     <span className="ml-2 text-gray-600">Superhost</span>
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">
-                    "I increased my bookings by 40% using OptimizeBnb.AI's recommendations"
+                  <h3 className="text-2xl font-bold text-white mb-2">
+                    &quot;I increased my bookings by 40% using OptimizeBnb.AI&apos;s recommendations&quot;
                   </h3>
-                  <p className="text-gray-600 mb-6">
-                    Sarah from Miami shares how she transformed her struggling Airbnb into a top-performing property using our platform's insights and optimization tools.
+                  <p className="text-blue-100 mb-6">
+                    Sarah from Miami shares how she transformed her struggling Airbnb into a top-performing property using our platform&apos;s insights and optimization tools.
                   </p>
                   <div className="flex items-center">
                     <div className="relative w-12 h-12 rounded-full overflow-hidden mr-4">
@@ -392,53 +391,45 @@ export default function GuidesPage() {
           {/* Resources Section */}
           <div>
             <h2 className="text-2xl font-bold mb-6">Additional Resources</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                <div className="text-blue-600 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="text-blue-500 mb-4">
                   <TrendingUp size={32} />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Market Reports</h3>
-                <p className="text-gray-600 mb-4">
-                  Access our quarterly market reports with insights on booking trends, pricing data, and guest preferences.
+                <h3 className="text-lg font-semibold mb-2">Data-Driven Insights</h3>
+                <p className="text-gray-600">
+                  Make informed decisions with our comprehensive analytics and market intelligence.
                 </p>
-                <Link 
-                  href="/resources/market-reports" 
-                  className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
-                >
-                  View Reports <ChevronRight className="ml-1 h-4 w-4" />
-                </Link>
               </div>
               
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                <div className="text-blue-600 mb-4">
+              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="text-blue-500 mb-4">
                   <Users size={32} />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Host Community</h3>
-                <p className="text-gray-600 mb-4">
-                  Join our community of hosts to share experiences, ask questions, and learn from each other.
+                <h3 className="text-lg font-semibold mb-2">Host Community</h3>
+                <p className="text-gray-600">
+                  Connect with fellow hosts to share strategies, tips, and support each other.
                 </p>
-                <Link 
-                  href="/community" 
-                  className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
-                >
-                  Join Community <ChevronRight className="ml-1 h-4 w-4" />
-                </Link>
               </div>
               
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                <div className="text-blue-600 mb-4">
-                  <Award size={32} />
+              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="text-blue-500 mb-4">
+                  <Shield size={32} />
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Certification Program</h3>
-                <p className="text-gray-600 mb-4">
-                  Become a certified OptimizeBnb.AI host and showcase your expertise to potential guests.
+                <h3 className="text-lg font-semibold mb-2">Trusted Resources</h3>
+                <p className="text-gray-600">
+                  Access verified, expert-reviewed guides and tools designed specifically for Airbnb hosts.
                 </p>
-                <Link 
-                  href="/certification" 
-                  className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
-                >
-                  Learn More <ChevronRight className="ml-1 h-4 w-4" />
-                </Link>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="text-blue-500 mb-4">
+                  <Heart size={32} />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Guest Satisfaction</h3>
+                <p className="text-gray-600">
+                  Enhance your guest experience and earn better reviews with our proven strategies.
+                </p>
               </div>
             </div>
           </div>
