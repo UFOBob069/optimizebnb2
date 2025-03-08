@@ -132,14 +132,22 @@ Amenities: ${scrapedData.amenities.join(', ')}
 Images: ${scrapedData.images.join(', ')}
 Reviews: ${scrapedData.reviews.join(', ')}
 
+Please provide a comprehensive analysis in the following format:
+
+Listing Name: [Provide a concise name for this listing based on its title and features]
+
+Overall Score: [Provide a score from 0-100 based on the overall quality of the listing]
+
 Pros:
 - [Strength #1]
 - [Strength #2]
 - [Strength #3]
+
 Cons:
 - [Concern #1]
 - [Concern #2]
 - [Concern #3]
+
 Recommendations:
 - [Recommendation #1]
 - [Recommendation #2]

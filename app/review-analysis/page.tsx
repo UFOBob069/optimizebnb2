@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Star, TrendingUp, TrendingDown, MessageCircle, ThumbsUp, ThumbsDown, AlertCircle, Info, Camera } from "lucide-react";
+import ProtectedRoute from '../components/ProtectedRoute';
 
 interface SentimentAnalysis {
   positive: number;
@@ -102,277 +103,339 @@ export default function ReviewAnalysisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8">
-          <ArrowLeft size={16} className="mr-2" /> Back to Home
-        </Link>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-6 md:p-8 border-b border-gray-200">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Review Analysis</h1>
-            <p className="mt-2 text-gray-600">
-              Analyze guest reviews to identify patterns, sentiment, and areas for improvement.
-            </p>
-          </div>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8">
+            <ArrowLeft size={16} className="mr-2" /> Back to Home
+          </Link>
           
-          <div className="p-6 md:p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <label htmlFor="listingUrl" className="block text-sm font-medium text-gray-700">
-                  Airbnb Listing URL
-                </label>
-                <input
-                  id="listingUrl"
-                  type="url"
-                  value={listingUrl}
-                  onChange={(e) => setListingUrl(e.target.value)}
-                  placeholder="https://www.airbnb.com/rooms/12345678"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-                <p className="text-sm text-gray-500">
-                  We&apos;ll analyze all reviews from your Airbnb listing.
-                </p>
-              </div>
-              
-              <div className="space-y-4">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Your Email (for notifications)
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <p className="text-sm text-gray-500">
-                  We&apos;ll notify you when we add new analysis features.
-                </p>
-              </div>
-              
-              <div>
-                <button
-                  type="submit"
-                  disabled={loading || !listingUrl}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? "Analyzing Reviews..." : "Analyze Reviews"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-        
-        {error && (
-          <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            <p className="font-medium">Error</p>
-            <p>{error}</p>
-          </div>
-        )}
-        
-        {note && (
-          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 flex items-start">
-            <Info className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium">Note</p>
-              <p>{note}</p>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-6 md:p-8 border-b border-gray-200">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Review Analysis</h1>
+              <p className="mt-2 text-gray-600">
+                Analyze guest reviews to identify patterns, sentiment, and areas for improvement.
+              </p>
             </div>
-          </div>
-        )}
-        
-        {analysis && (
-          <div className="mt-8 space-y-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="p-6 md:p-8 border-b border-gray-200">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  <h2 className="text-2xl font-bold text-gray-900">Review Analysis Results</h2>
-                  <div className="mt-4 md:mt-0 flex items-center">
-                    <div className="flex items-center mr-4">
-                      <Star className="h-5 w-5 text-yellow-400 mr-1" fill="currentColor" />
-                      <span className="font-bold">{analysis.averageRating.toFixed(1)}</span>
-                      <span className="text-gray-500 ml-1">/ 5</span>
+            
+            {/* New CTA Section */}
+            <div className="p-6 md:p-8 bg-gradient-to-r from-blue-600 to-indigo-700 text-white border-b border-gray-200">
+              <h2 className="text-xl md:text-2xl font-bold mb-4">Unlock the Power of Your Guest Reviews</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 hover:bg-white/20 transition-all">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 p-2 bg-white/20 rounded-full mr-4">
+                      <TrendingUp className="h-6 w-6" />
                     </div>
-                    <div className="text-gray-600">
-                      Based on {analysis.reviewCount} reviews
+                    <div>
+                      <h3 className="font-bold text-lg mb-2">Identify Growth Opportunities</h3>
+                      <p className="text-white/90">Discover what guests love and what needs improvement with <span className="font-bold">AI-powered sentiment analysis</span>.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 hover:bg-white/20 transition-all">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 p-2 bg-white/20 rounded-full mr-4">
+                      <Star className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg mb-2">Boost Your Ratings</h3>
+                      <p className="text-white/90">Hosts who act on review insights see an average <span className="font-bold">0.5-star increase</span> in their overall rating.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 hover:bg-white/20 transition-all">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 p-2 bg-white/20 rounded-full mr-4">
+                      <MessageCircle className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg mb-2">Understand Guest Sentiment</h3>
+                      <p className="text-white/90">Our AI analyzes <span className="font-bold">tone, context, and patterns</span> across all your reviews to reveal hidden insights.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 hover:bg-white/20 transition-all">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 p-2 bg-white/20 rounded-full mr-4">
+                      <AlertCircle className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg mb-2">Actionable Recommendations</h3>
+                      <p className="text-white/90">Get <span className="font-bold">specific, prioritized suggestions</span> to address guest concerns and enhance their experience.</p>
                     </div>
                   </div>
                 </div>
               </div>
               
-              {/* Add a small badge if we have real reviews */}
-              {extractedReviews && extractedReviews.length > 0 && (
-                <div className="px-6 md:px-8 pt-4">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <Camera className="h-3 w-3 mr-1" />
-                    {extractedReviews.length} real reviews analyzed
-                  </span>
-                </div>
-              )}
-              
-              <div className="p-6 md:p-8">
-                {/* Sentiment Overview */}
-                <div className="mb-10">
-                  <h3 className="text-xl font-semibold mb-4">Sentiment Overview</h3>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex flex-col md:flex-row gap-4">
-                      <div className="flex-1 text-center p-4">
-                        <div className="text-green-500 font-bold text-3xl mb-1">
-                          {analysis.overallSentiment.positive}%
-                        </div>
-                        <div className="text-gray-600">Positive</div>
-                      </div>
-                      <div className="flex-1 text-center p-4">
-                        <div className="text-gray-500 font-bold text-3xl mb-1">
-                          {analysis.overallSentiment.neutral}%
-                        </div>
-                        <div className="text-gray-600">Neutral</div>
-                      </div>
-                      <div className="flex-1 text-center p-4">
-                        <div className="text-red-500 font-bold text-3xl mb-1">
-                          {analysis.overallSentiment.negative}%
-                        </div>
-                        <div className="text-gray-600">Negative</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Topic Analysis */}
-                <div className="mb-10">
-                  <h3 className="text-xl font-semibold mb-4">Topic Analysis</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {analysis.topicAnalysis.map((topic, index) => (
-                      <div 
-                        key={index} 
-                        className={`p-4 rounded-lg border ${
-                          topic.sentiment === 'positive' 
-                            ? 'border-green-200 bg-green-50' 
-                            : topic.sentiment === 'negative'
-                              ? 'border-red-200 bg-red-50'
-                              : 'border-gray-200 bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold">{topic.topic}</h4>
-                          <div className="flex items-center">
-                            {topic.sentiment === 'positive' ? (
-                              <ThumbsUp className="h-4 w-4 text-green-500 mr-1" />
-                            ) : topic.sentiment === 'negative' ? (
-                              <ThumbsDown className="h-4 w-4 text-red-500 mr-1" />
-                            ) : (
-                              <MessageCircle className="h-4 w-4 text-gray-500 mr-1" />
-                            )}
-                            <span className="text-sm">
-                              Mentioned in {topic.count} reviews
-                            </span>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          {topic.examples.map((example, i) => (
-                            <div key={i} className="text-sm italic">
-                              &ldquo;{example}&rdquo;
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Common Feedback */}
-                <div className="mb-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-4 text-green-700 flex items-center">
-                      <ThumbsUp className="mr-2" size={20} /> Common Praises
-                    </h3>
-                    <ul className="space-y-2">
-                      {analysis.commonPraises.map((praise, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-green-500 mr-2">•</span>
-                          <span>{praise}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-xl font-semibold mb-4 text-red-700 flex items-center">
-                      <ThumbsDown className="mr-2" size={20} /> Common Complaints
-                    </h3>
-                    <ul className="space-y-2">
-                      {analysis.commonComplaints.map((complaint, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-red-500 mr-2">•</span>
-                          <span>{complaint}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                
-                {/* Recommendations */}
-                <div>
-                  <h3 className="text-xl font-semibold mb-4 text-blue-700 flex items-center">
-                    <AlertCircle className="mr-2" size={20} /> Recommendations
-                  </h3>
-                  <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
-                    <ul className="space-y-3">
-                      {analysis.recommendations.map((recommendation, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-blue-500 mr-2">•</span>
-                          <span>{recommendation}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+              <div className="text-center bg-white/10 p-4 rounded-lg">
+                <p className="font-bold text-lg mb-2">Analyze your reviews today and transform guest feedback into a competitive advantage!</p>
+                <p className="text-white/80 text-sm">Takes less than 60 seconds • No credit card required</p>
               </div>
             </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-6 md:p-8">
-              <h3 className="text-xl font-semibold mb-4">Next Steps</h3>
-              <p className="mb-6">
-                Based on your review analysis, here are some recommended actions to improve your listing:
-              </p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Link 
-                  href="/photo-analysis" 
-                  className="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors"
-                >
-                  <h4 className="font-semibold mb-2">Analyze Your Photos</h4>
-                  <p className="text-sm text-gray-600">
-                    Get feedback on your listing photos to improve visual appeal.
+            <div className="p-6 md:p-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-4">
+                  <label htmlFor="listingUrl" className="block text-sm font-medium text-gray-700">
+                    Airbnb Listing URL
+                  </label>
+                  <input
+                    id="listingUrl"
+                    type="url"
+                    value={listingUrl}
+                    onChange={(e) => setListingUrl(e.target.value)}
+                    placeholder="https://www.airbnb.com/rooms/12345678"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                  <p className="text-sm text-gray-500">
+                    We&apos;ll analyze all reviews from your Airbnb listing.
                   </p>
-                </Link>
+                </div>
                 
-                <Link 
-                  href="/seo-optimization" 
-                  className="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors"
-                >
-                  <h4 className="font-semibold mb-2">Optimize Your Description</h4>
-                  <p className="text-sm text-gray-600">
-                    Update your listing description to address common feedback.
+                <div className="space-y-4">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    Your Email (for notifications)
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-sm text-gray-500">
+                    We&apos;ll notify you when we add new analysis features.
                   </p>
-                </Link>
+                </div>
                 
-                <Link 
-                  href="/welcome-guide" 
-                  className="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors"
-                >
-                  <h4 className="font-semibold mb-2">Create a Welcome Guide</h4>
-                  <p className="text-sm text-gray-600">
-                    Improve guest experience with a detailed welcome guide.
-                  </p>
-                </Link>
-              </div>
+                <div>
+                  <button
+                    type="submit"
+                    disabled={loading || !listingUrl}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {loading ? "Analyzing Reviews..." : "Analyze Reviews"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        )}
+          
+          {error && (
+            <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+              <p className="font-medium">Error</p>
+              <p>{error}</p>
+            </div>
+          )}
+          
+          {note && (
+            <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 flex items-start">
+              <Info className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium">Note</p>
+                <p>{note}</p>
+              </div>
+            </div>
+          )}
+          
+          {analysis && (
+            <div className="mt-8 space-y-8">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="p-6 md:p-8 border-b border-gray-200">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <h2 className="text-2xl font-bold text-gray-900">Review Analysis Results</h2>
+                    <div className="mt-4 md:mt-0 flex items-center">
+                      <div className="flex items-center mr-4">
+                        <Star className="h-5 w-5 text-yellow-400 mr-1" fill="currentColor" />
+                        <span className="font-bold">{analysis.averageRating.toFixed(1)}</span>
+                        <span className="text-gray-500 ml-1">/ 5</span>
+                      </div>
+                      <div className="text-gray-600">
+                        Based on {analysis.reviewCount} reviews
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Add a small badge if we have real reviews */}
+                {extractedReviews && extractedReviews.length > 0 && (
+                  <div className="px-6 md:px-8 pt-4">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <Camera className="h-3 w-3 mr-1" />
+                      {extractedReviews.length} real reviews analyzed
+                    </span>
+                  </div>
+                )}
+                
+                <div className="p-6 md:p-8">
+                  {/* Sentiment Overview */}
+                  <div className="mb-10">
+                    <h3 className="text-xl font-semibold mb-4">Sentiment Overview</h3>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex-1 text-center p-4">
+                          <div className="text-green-500 font-bold text-3xl mb-1">
+                            {analysis.overallSentiment.positive}%
+                          </div>
+                          <div className="text-gray-600">Positive</div>
+                        </div>
+                        <div className="flex-1 text-center p-4">
+                          <div className="text-gray-500 font-bold text-3xl mb-1">
+                            {analysis.overallSentiment.neutral}%
+                          </div>
+                          <div className="text-gray-600">Neutral</div>
+                        </div>
+                        <div className="flex-1 text-center p-4">
+                          <div className="text-red-500 font-bold text-3xl mb-1">
+                            {analysis.overallSentiment.negative}%
+                          </div>
+                          <div className="text-gray-600">Negative</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Topic Analysis */}
+                  <div className="mb-10">
+                    <h3 className="text-xl font-semibold mb-4">Topic Analysis</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {analysis.topicAnalysis.map((topic, index) => (
+                        <div 
+                          key={index} 
+                          className={`p-4 rounded-lg border ${
+                            topic.sentiment === 'positive' 
+                              ? 'border-green-200 bg-green-50' 
+                              : topic.sentiment === 'negative'
+                                ? 'border-red-200 bg-red-50'
+                                : 'border-gray-200 bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-semibold">{topic.topic}</h4>
+                            <div className="flex items-center">
+                              {topic.sentiment === 'positive' ? (
+                                <ThumbsUp className="h-4 w-4 text-green-500 mr-1" />
+                              ) : topic.sentiment === 'negative' ? (
+                                <ThumbsDown className="h-4 w-4 text-red-500 mr-1" />
+                              ) : (
+                                <MessageCircle className="h-4 w-4 text-gray-500 mr-1" />
+                              )}
+                              <span className="text-sm">
+                                Mentioned in {topic.count} reviews
+                              </span>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            {topic.examples.map((example, i) => (
+                              <div key={i} className="text-sm italic">
+                                &ldquo;{example}&rdquo;
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Common Feedback */}
+                  <div className="mb-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-xl font-semibold mb-4 text-green-700 flex items-center">
+                        <ThumbsUp className="mr-2" size={20} /> Common Praises
+                      </h3>
+                      <ul className="space-y-2">
+                        {analysis.commonPraises.map((praise, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-green-500 mr-2">•</span>
+                            <span>{praise}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-xl font-semibold mb-4 text-red-700 flex items-center">
+                        <ThumbsDown className="mr-2" size={20} /> Common Complaints
+                      </h3>
+                      <ul className="space-y-2">
+                        {analysis.commonComplaints.map((complaint, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-red-500 mr-2">•</span>
+                            <span>{complaint}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  {/* Recommendations */}
+                  <div>
+                    <h3 className="text-xl font-semibold mb-4 text-blue-700 flex items-center">
+                      <AlertCircle className="mr-2" size={20} /> Recommendations
+                    </h3>
+                    <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
+                      <ul className="space-y-3">
+                        {analysis.recommendations.map((recommendation, index) => (
+                          <li key={index} className="flex items-start">
+                            <span className="text-blue-500 mr-2">•</span>
+                            <span>{recommendation}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden p-6 md:p-8">
+                <h3 className="text-xl font-semibold mb-4">Next Steps</h3>
+                <p className="mb-6">
+                  Based on your review analysis, here are some recommended actions to improve your listing:
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Link 
+                    href="/photo-analysis" 
+                    className="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors"
+                  >
+                    <h4 className="font-semibold mb-2">Analyze Your Photos</h4>
+                    <p className="text-sm text-gray-600">
+                      Get feedback on your listing photos to improve visual appeal.
+                    </p>
+                  </Link>
+                  
+                  <Link 
+                    href="/seo-optimization" 
+                    className="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors"
+                  >
+                    <h4 className="font-semibold mb-2">Optimize Your Description</h4>
+                    <p className="text-sm text-gray-600">
+                      Update your listing description to address common feedback.
+                    </p>
+                  </Link>
+                  
+                  <Link 
+                    href="/welcome-guide" 
+                    className="block p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors"
+                  >
+                    <h4 className="font-semibold mb-2">Create a Welcome Guide</h4>
+                    <p className="text-sm text-gray-600">
+                      Improve guest experience with a detailed welcome guide.
+                    </p>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 } 

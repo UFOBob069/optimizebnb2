@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
+import ProtectedRoute from '../components/ProtectedRoute';
 
 interface GuideSection {
   title: string;
@@ -305,182 +306,184 @@ export default function WelcomeGuidePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8">
-          <span className="mr-2">←</span> Back to Home
-        </Link>
-        
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
-            Welcome Guide Generator
-          </h1>
-          <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
-            Create a professional welcome guide for your Airbnb guests with local recommendations and property information.
-          </p>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-3xl mx-auto mb-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Why Create a Welcome Guide?</h2>
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8">
+            <span className="mr-2">←</span> Back to Home
+          </Link>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-blue-800 mb-2">Enhance Guest Experience</h3>
-              <p className="text-gray-700">
-                A professional welcome guide helps guests feel at home and provides them with all the information they need for a comfortable stay.
-              </p>
-            </div>
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+              Welcome Guide Generator
+            </h1>
+            <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
+              Create a professional welcome guide for your Airbnb guests with local recommendations and property information.
+            </p>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-3xl mx-auto mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Why Create a Welcome Guide?</h2>
             
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-green-800 mb-2">Reduce Questions</h3>
-              <p className="text-gray-700">
-                Answer common questions before they&apos;re asked, reducing the number of messages and calls from guests during their stay.
-              </p>
-            </div>
-            
-            <div className="bg-amber-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-amber-800 mb-2">Highlight Local Attractions</h3>
-              <p className="text-gray-700">
-                Showcase the best restaurants, activities, and hidden gems in your area to help guests make the most of their trip.
-              </p>
-            </div>
-            
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <h3 className="text-lg font-medium text-purple-800 mb-2">Better Reviews</h3>
-              <p className="text-gray-700">
-                Properties with comprehensive welcome guides tend to receive higher ratings and more positive reviews from satisfied guests.
-              </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="text-lg font-medium text-blue-800 mb-2">Enhance Guest Experience</h3>
+                <p className="text-gray-700">
+                  A professional welcome guide helps guests feel at home and provides them with all the information they need for a comfortable stay.
+                </p>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="text-lg font-medium text-green-800 mb-2">Reduce Questions</h3>
+                <p className="text-gray-700">
+                  Answer common questions before they&apos;re asked, reducing the number of messages and calls from guests during their stay.
+                </p>
+              </div>
+              
+              <div className="bg-amber-50 p-4 rounded-lg">
+                <h3 className="text-lg font-medium text-amber-800 mb-2">Highlight Local Attractions</h3>
+                <p className="text-gray-700">
+                  Showcase the best restaurants, activities, and hidden gems in your area to help guests make the most of their trip.
+                </p>
+              </div>
+              
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h3 className="text-lg font-medium text-purple-800 mb-2">Better Reviews</h3>
+                <p className="text-gray-700">
+                  Properties with comprehensive welcome guides tend to receive higher ratings and more positive reviews from satisfied guests.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        
-        {step === "form" && (
-          <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-1">
-                  Your Airbnb Listing URL
-                </label>
-                <input
-                  type="url"
-                  id="url"
-                  name="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://www.airbnb.com/rooms/your-listing-id"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  We&apos;ll extract information from your listing to personalize the guide.
-                </p>
-              </div>
-              
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Your Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  We&apos;ll send the completed guide to this email address.
-                </p>
-              </div>
-              
-              <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                  Property Address
-                </label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="123 Main St, City, State, Zip"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  This helps us provide accurate local recommendations near your property.
-                </p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Sections to Include
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {availableSections.map((section) => (
-                    <div 
-                      key={section.id}
-                      className={`relative rounded-lg border p-4 cursor-pointer transition-colors ${
-                        selectedSections.includes(section.id) 
-                          ? "bg-blue-50 border-blue-500" 
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                      onClick={() => toggleSection(section.id)}
-                    >
-                      <div className="flex items-start">
-                        <div className="flex items-center h-5">
-                          <input
-                            id={`section-${section.id}`}
-                            type="checkbox"
-                            checked={selectedSections.includes(section.id)}
-                            onChange={() => toggleSection(section.id)}
-                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                        </div>
-                        <div className="ml-3 text-sm">
-                          <label htmlFor={`section-${section.id}`} className="font-medium text-gray-900">
-                            {section.title}
-                          </label>
-                          <p className="text-gray-500">{section.description}</p>
+          
+          {step === "form" && (
+            <div className="bg-white rounded-lg shadow-lg p-8 max-w-3xl mx-auto">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-1">
+                    Your Airbnb Listing URL
+                  </label>
+                  <input
+                    type="url"
+                    id="url"
+                    name="url"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://www.airbnb.com/rooms/your-listing-id"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    We&apos;ll extract information from your listing to personalize the guide.
+                  </p>
+                </div>
+                
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Your Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    We&apos;ll send the completed guide to this email address.
+                  </p>
+                </div>
+                
+                <div>
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+                    Property Address
+                  </label>
+                  <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="123 Main St, City, State, Zip"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    This helps us provide accurate local recommendations near your property.
+                  </p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Sections to Include
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {availableSections.map((section) => (
+                      <div 
+                        key={section.id}
+                        className={`relative rounded-lg border p-4 cursor-pointer transition-colors ${
+                          selectedSections.includes(section.id) 
+                            ? "bg-blue-50 border-blue-500" 
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        onClick={() => toggleSection(section.id)}
+                      >
+                        <div className="flex items-start">
+                          <div className="flex items-center h-5">
+                            <input
+                              id={`section-${section.id}`}
+                              type="checkbox"
+                              checked={selectedSections.includes(section.id)}
+                              onChange={() => toggleSection(section.id)}
+                              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <label htmlFor={`section-${section.id}`} className="font-medium text-gray-900">
+                              {section.title}
+                            </label>
+                            <p className="text-gray-500">{section.description}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-              
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                  {error}
+                
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    {error}
+                  </div>
+                )}
+                
+                <div className="pt-4">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-colors ${
+                      loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                  >
+                    {loading ? "Generating..." : "Generate Welcome Guide"}
+                  </button>
                 </div>
-              )}
-              
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`w-full py-3 px-6 rounded-lg font-medium text-white transition-colors ${
-                    loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                  }`}
-                >
-                  {loading ? "Generating..." : "Generate Welcome Guide"}
-                </button>
-              </div>
-              
-              <div className="text-center text-sm text-gray-500 pt-2">
-                By submitting, you agree to our <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>.
-              </div>
-            </form>
-          </div>
-        )}
-        
-        {step === "processing" && renderProcessingSteps()}
-        
-        {step === "result" && renderGuide()}
+                
+                <div className="text-center text-sm text-gray-500 pt-2">
+                  By submitting, you agree to our <Link href="/terms" className="text-blue-600 hover:underline">Terms of Service</Link> and <Link href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</Link>.
+                </div>
+              </form>
+            </div>
+          )}
+          
+          {step === "processing" && renderProcessingSteps()}
+          
+          {step === "result" && renderGuide()}
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }
 

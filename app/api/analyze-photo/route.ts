@@ -331,9 +331,9 @@ function extractRecommendations(text: string) {
             !point.toLowerCase().includes('recommendations:') &&
             !point.toLowerCase().match(/^\d+\.?\s*recommendations:?/)
           );
-        
-        if (bulletPoints.length > 0) {
-          return bulletPoints.slice(0, 5); // Limit to 5 recommendations
+      
+      if (bulletPoints.length > 0) {
+        return bulletPoints.slice(0, 5); // Limit to 5 recommendations
         }
       }
       
@@ -443,8 +443,8 @@ function calculateCategoryScores(text: string) {
   const scores = categories.map(category => {
     return { name: category.name, score: 0, mentions: 0 };
   });
-  
-  // Look for explicit scores in the text
+    
+    // Look for explicit scores in the text
   for (const category of scores) {
     const scorePattern = new RegExp(`${category.name}\\s*:\\s*(\\d+)(?:\\s*\\/\\s*10)?`, 'i');
     const match = text.match(scorePattern);
@@ -619,7 +619,7 @@ export async function POST(request: Request) {
       // Analyze the photo
       try {
         console.log('Sending photo to OpenAI for analysis...');
-        analysis = await analyzePhotoWithAI(photoUrl);
+          analysis = await analyzePhotoWithAI(photoUrl);
         console.log('Successfully received analysis from OpenAI');
       } catch (error: unknown) {
         console.error('Error analyzing photo with OpenAI:', error);
@@ -687,7 +687,7 @@ export async function POST(request: Request) {
       
       try {
         console.log('Sending photo to OpenAI for analysis...');
-        analysis = await analyzePhotoWithAI(photoUrl);
+          analysis = await analyzePhotoWithAI(photoUrl);
         console.log('Successfully received analysis from OpenAI');
       } catch (error: unknown) {
         console.error('Error analyzing photo with OpenAI:', error);

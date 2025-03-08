@@ -8,54 +8,69 @@ interface AnalysisResult {
   pros: string[];
   cons: string[];
   recommendations: string[];
+  overallScore?: number;
+  listingName?: string;
 }
 
 export default function AnalyzePage() {
   const [url, setUrl] = useState("");
-  const [analysisType, setAnalysisType] = useState<string>("comprehensive");
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+
+    if (!url) {
+      setError("Please enter your Airbnb listing URL.");
+      return;
+    }
+
+    if (!email) {
+      setError("Please enter your email address to receive the analysis results.");
+      return;
+    }
+
     setLoading(true);
-    setError(null);
-    setResult(null);
 
     try {
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, analysisType }),
+      const response = await fetch('/api/analyze-listing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url, email }),
       });
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to analyze listing");
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to analyze listing');
       }
+
+      const data = await response.json();
       
-      const data = await res.json();
+      // Parse the raw response if needed
+      const result = typeof data.analysis === 'string' 
+        ? parseRawResponse(data.analysis, data.listingName) 
+        : data.analysis;
       
-      // If we're getting raw response for debugging
-      if (data.rawResponse) {
-        // Parse the raw response into our expected format
-        const parsedResult = parseRawResponse(data.rawResponse);
-        setResult(parsedResult);
-      } else {
-        // Otherwise use the structured response
-        setResult(data);
-      }
-    } catch (err) {
-      console.error("Error analyzing listing:", err);
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      setAnalysisResult(result);
+    } catch (err: unknown) {
+      console.error('Error analyzing listing:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to analyze listing. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  // Helper function to parse raw OpenAI response
-  const parseRawResponse = (text: string): AnalysisResult => {
+  const parseRawResponse = (text: string, listingName?: string): AnalysisResult => {
+    // Extract overall score if available
+    const overallScoreMatch = text.match(/Overall Score:?\s*(\d+)(?:\/100)?/i);
+    const overallScore = overallScoreMatch ? parseInt(overallScoreMatch[1], 10) : undefined;
+    
     const pros = text.match(/Pros:[\s\S]*?(?=Cons:)/)?.[0]
       .split('\n')
       .filter(line => line.trim().startsWith('-'))
@@ -71,15 +86,30 @@ export default function AnalyzePage() {
       .filter(line => line.trim().startsWith('-'))
       .map(line => line.replace(/^-\s*/, '').trim()) || [];
     
-    return { pros, cons, recommendations };
+    return { pros, cons, recommendations, overallScore, listingName };
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-8">
           <ArrowLeft size={16} className="mr-2" /> Back to Home
         </Link>
+        
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-md">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-blue-700">
+                <strong>Try our listing analyzer for free!</strong> Create an account to unlock all premium features including photo analysis, pricing strategy, and more.
+              </p>
+              <p className="mt-2">
+                <Link href="/account/signup" className="text-blue-700 hover:text-blue-600 font-medium">
+                  Sign up now →
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
         
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-6 md:p-8 border-b border-gray-200">
@@ -89,118 +119,147 @@ export default function AnalyzePage() {
             </p>
           </div>
           
-          {/* Enhanced CTA Section */}
           <div className="p-6 md:p-8 bg-blue-50 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-blue-800 mb-3">Why Analyze Your Listing?</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 text-blue-600 mt-0.5">
+              <div className="flex">
+                <div className="flex-shrink-0 h-6 w-6 text-blue-600">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div className="ml-3">
-                  <p className="text-gray-700 font-medium">Increase Bookings by 32%</p>
-                  <p className="text-gray-600 text-sm">Hosts who optimize their listings see an average 32% increase in bookings</p>
-                </div>
+                <p className="ml-3 text-blue-700">Identify strengths and weaknesses in your listing</p>
               </div>
-              <div className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 text-blue-600 mt-0.5">
+              <div className="flex">
+                <div className="flex-shrink-0 h-6 w-6 text-blue-600">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div className="ml-3">
-                  <p className="text-gray-700 font-medium">Improve Guest Ratings</p>
-                  <p className="text-gray-600 text-sm">Identify and fix issues that could be affecting your guest experience and ratings</p>
-                </div>
+                <p className="ml-3 text-blue-700">Get actionable recommendations to improve your listing</p>
               </div>
-              <div className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 text-blue-600 mt-0.5">
+              <div className="flex">
+                <div className="flex-shrink-0 h-6 w-6 text-blue-600">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div className="ml-3">
-                  <p className="text-gray-700 font-medium">Stand Out From Competition</p>
-                  <p className="text-gray-600 text-sm">Get expert recommendations to make your listing more attractive than competitors</p>
-                </div>
+                <p className="ml-3 text-blue-700">Increase your visibility in search results</p>
               </div>
-              <div className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 text-blue-600 mt-0.5">
+              <div className="flex">
+                <div className="flex-shrink-0 h-6 w-6 text-blue-600">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <div className="ml-3">
-                  <p className="text-gray-700 font-medium">Maximize Your Revenue</p>
-                  <p className="text-gray-600 text-sm">Discover opportunities to increase your nightly rate while maintaining high occupancy</p>
-                </div>
+                <p className="ml-3 text-blue-700">Attract more bookings and increase revenue</p>
               </div>
-            </div>
-            <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-yellow-800 font-medium flex items-center">
-                <span className="mr-2">⚡</span>
-                <span>Limited Time: Get a free comprehensive analysis of your listing today!</span>
-              </p>
             </div>
           </div>
           
           <div className="p-6 md:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700">{error}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div>
-                <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-1">
-                  Airbnb Listing URL
+                <label htmlFor="url" className="block text-gray-700 font-medium mb-2">
+                  Airbnb Listing URL*
                 </label>
                 <input
-                  id="url"
                   type="url"
+                  id="url"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="https://www.airbnb.com/rooms/12345678"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
+                <p className="mt-1 text-sm text-gray-500">
+                  Enter the full URL of your Airbnb listing
+                </p>
               </div>
               
-              {/* Hidden input for analysis type */}
-              <input type="hidden" name="analysisType" value="comprehensive" />
+              <div>
+                <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
+                  Your Email Address*
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  We&apos;ll send the analysis results to this email
+                </p>
+              </div>
               
               <div>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors text-lg"
+                  className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
-                  {loading ? "Analyzing Your Listing..." : "Get Your Free Analysis Now →"}
+                  {loading ? 'Analyzing...' : 'Analyze My Listing'}
                 </button>
-                <p className="text-center text-gray-500 text-sm mt-2">
-                  Takes less than 60 seconds • No credit card required
-                </p>
               </div>
             </form>
           </div>
         </div>
         
-        {error && (
-          <div className="mt-8 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            <p className="font-medium">Error</p>
-            <p>{error}</p>
-          </div>
-        )}
-        
-        {result && (
+        {analysisResult && (
           <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-6 md:p-8 border-b border-gray-200">
               <h2 className="text-2xl font-bold text-gray-900">Analysis Results</h2>
+              {analysisResult.listingName && (
+                <p className="mt-2 text-gray-600">
+                  Listing: <span className="font-semibold">{analysisResult.listingName}</span>
+                </p>
+              )}
             </div>
             
             <div className="p-6 md:p-8 space-y-8">
+              {/* Overall Score Section */}
+              {analysisResult.overallScore !== undefined && (
+                <div className="bg-blue-50 rounded-lg p-6 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-blue-800">Overall Listing Score</h3>
+                    <p className="text-gray-600">Based on our comprehensive analysis of your listing</p>
+                  </div>
+                  <div className="text-center">
+                    <div className={`text-4xl font-bold rounded-full h-24 w-24 flex items-center justify-center ${
+                      analysisResult.overallScore >= 80 ? 'bg-green-100 text-green-700' :
+                      analysisResult.overallScore >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      {analysisResult.overallScore}
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">out of 100</p>
+                  </div>
+                </div>
+              )}
+              
               {/* Pros Section */}
               <div>
                 <h3 className="text-xl font-semibold text-green-700 mb-4">Pros</h3>
                 <ul className="space-y-3">
-                  {result.pros.map((pro, index) => (
+                  {analysisResult.pros.map((pro, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-green-500 mr-2">✓</span>
                       <span>{pro}</span>
@@ -213,7 +272,7 @@ export default function AnalyzePage() {
               <div>
                 <h3 className="text-xl font-semibold text-red-700 mb-4">Areas for Improvement</h3>
                 <ul className="space-y-3">
-                  {result.cons.map((con, index) => (
+                  {analysisResult.cons.map((con, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-red-500 mr-2">✗</span>
                       <span>{con}</span>
@@ -226,7 +285,7 @@ export default function AnalyzePage() {
               <div>
                 <h3 className="text-xl font-semibold text-blue-700 mb-4">Recommendations</h3>
                 <ul className="space-y-3">
-                  {result.recommendations.map((rec, index) => (
+                  {analysisResult.recommendations.map((rec, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-blue-500 mr-2">→</span>
                       <span>{rec}</span>
@@ -235,20 +294,46 @@ export default function AnalyzePage() {
                 </ul>
               </div>
               
+              {/* CTA for signup after showing results */}
+              <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-100">
+                <h3 className="text-lg font-semibold text-blue-800 mb-2">Ready to take your Airbnb listing to the next level?</h3>
+                <p className="text-blue-700 mb-4">
+                  Sign up now to unlock all premium features including photo analysis, pricing strategy, amenity recommendations, and more!
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <Link 
+                    href="/account/signup" 
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Create Free Account
+                  </Link>
+                  <Link 
+                    href="/account/login" 
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Sign In
+                  </Link>
+                </div>
+              </div>
+              
+              {/* What's Next Section */}
               <div className="pt-6 border-t border-gray-200">
-                <h3 className="text-lg font-semibold mb-4">What's Next?</h3>
+                <h3 className="text-lg font-semibold mb-4">What&apos;s Next?</h3>
+                <p className="text-gray-700 mb-4">
+                  Create an account to access these premium features:
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Welcome Guide */}
                   <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                     <div className="p-4">
                       <div className="text-3xl mb-2">📍</div>
                       <h4 className="font-semibold text-gray-900 mb-1">Custom Welcome Guide</h4>
-                      <p className="text-gray-600 text-sm mb-3">Create a personalized welcome guide based on your location. Highlight local attractions, emergency services, and house rules.</p>
+                      <p className="text-gray-600 text-sm mb-3">Create a personalized welcome guide based on your location.</p>
                       <Link 
-                        href="/welcome-guide" 
+                        href="/account/signup" 
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
                       >
-                        Create Guide <span className="ml-1">→</span>
+                        Sign Up <span className="ml-1">→</span>
                       </Link>
                     </div>
                   </div>
@@ -258,12 +343,12 @@ export default function AnalyzePage() {
                     <div className="p-4">
                       <div className="text-3xl mb-2">📸</div>
                       <h4 className="font-semibold text-gray-900 mb-1">Photo Analysis</h4>
-                      <p className="text-gray-600 text-sm mb-3">Get professional feedback on your listing photos. Learn how to improve image quality, staging, and appeal to potential guests.</p>
+                      <p className="text-gray-600 text-sm mb-3">Get professional feedback on your listing photos.</p>
                       <Link 
-                        href="/photo-analysis" 
+                        href="/account/signup" 
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
                       >
-                        Analyze Photos <span className="ml-1">→</span>
+                        Sign Up <span className="ml-1">→</span>
                       </Link>
                     </div>
                   </div>
@@ -273,57 +358,12 @@ export default function AnalyzePage() {
                     <div className="p-4">
                       <div className="text-3xl mb-2">🔍</div>
                       <h4 className="font-semibold text-gray-900 mb-1">SEO Optimization</h4>
-                      <p className="text-gray-600 text-sm mb-3">Optimize your title and description to rank higher in search results and attract more bookings.</p>
+                      <p className="text-gray-600 text-sm mb-3">Optimize your title and description to rank higher in search results.</p>
                       <Link 
-                        href="/seo-optimization" 
+                        href="/account/signup" 
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
                       >
-                        Optimize SEO <span className="ml-1">→</span>
-                      </Link>
-                    </div>
-                  </div>
-                  
-                  {/* Review Analysis */}
-                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="p-4">
-                      <div className="text-3xl mb-2">⭐</div>
-                      <h4 className="font-semibold text-gray-900 mb-1">Review Analysis</h4>
-                      <p className="text-gray-600 text-sm mb-3">Gain valuable insights from your guest reviews. Identify patterns, sentiment trends, and areas for improvement to enhance your listing.</p>
-                      <Link 
-                        href="/review-analysis" 
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
-                      >
-                        Analyze Reviews <span className="ml-1">→</span>
-                      </Link>
-                    </div>
-                  </div>
-                  
-                  {/* Pricing Strategy */}
-                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="p-4">
-                      <div className="text-3xl mb-2">💰</div>
-                      <h4 className="font-semibold text-gray-900 mb-1">Pricing Strategy</h4>
-                      <p className="text-gray-600 text-sm mb-3">Get data-driven recommendations for optimal pricing based on seasonality, local events, and competition.</p>
-                      <Link 
-                        href="/pricing-strategy" 
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
-                      >
-                        Optimize Pricing <span className="ml-1">→</span>
-                      </Link>
-                    </div>
-                  </div>
-                  
-                  {/* Amenity Recommendations */}
-                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                    <div className="p-4">
-                      <div className="text-3xl mb-2">🛋️</div>
-                      <h4 className="font-semibold text-gray-900 mb-1">Amenity Recommendations</h4>
-                      <p className="text-gray-600 text-sm mb-3">Discover which amenities will have the biggest impact on your bookings and guest satisfaction.</p>
-                      <Link 
-                        href="/amenity-recommendations" 
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center"
-                      >
-                        Get Recommendations <span className="ml-1">→</span>
+                        Sign Up <span className="ml-1">→</span>
                       </Link>
                     </div>
                   </div>
@@ -332,48 +372,6 @@ export default function AnalyzePage() {
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function AnalysisTypeCard({ 
-  id, 
-  title, 
-  description, 
-  selected, 
-  onClick 
-}: { 
-  id: string; 
-  title: string; 
-  description: string; 
-  selected: boolean; 
-  onClick: () => void; 
-}) {
-  return (
-    <div 
-      className={`border rounded-lg p-4 cursor-pointer transition-all ${
-        selected 
-          ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500" 
-          : "border-gray-200 hover:border-blue-300 hover:bg-blue-50"
-      }`}
-      onClick={onClick}
-    >
-      <div className="flex items-start">
-        <input
-          type="radio"
-          id={id}
-          name="analysisType"
-          checked={selected}
-          onChange={() => {}}
-          className="mt-1 mr-3"
-        />
-        <div>
-          <label htmlFor={id} className="font-medium block mb-1 cursor-pointer">
-            {title}
-          </label>
-          <p className="text-sm text-gray-600">{description}</p>
-        </div>
       </div>
     </div>
   );

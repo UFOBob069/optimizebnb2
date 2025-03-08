@@ -41,15 +41,18 @@ export default function Home() {
                 href="/analyze" 
                 className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-6 py-3 rounded-lg text-center transition-colors"
               >
-                Analyze My Listing
+                Free Listing Analysis
               </Link>
               <Link 
                 href="#features" 
                 className="bg-blue-700 hover:bg-blue-800 px-6 py-3 rounded-lg text-center transition-colors"
               >
-                Explore Features
+                Explore Premium Features
               </Link>
             </div>
+            <p className="mt-4 text-blue-200 text-sm">
+              No account required for basic listing analysis!
+            </p>
           </div>
         </div>
         <div className="absolute bottom-0 right-0 w-full md:w-1/2 h-64 md:h-full opacity-10 md:opacity-20">
@@ -93,6 +96,9 @@ export default function Home() {
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Our AI-powered platform provides everything you need to optimize your listing and delight your guests.
             </p>
+            <div className="mt-4 inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
+              Account required for premium features below
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -103,6 +109,7 @@ export default function Home() {
               icon="📍"
               href="/welcome-guide"
               ctaText="Create Guide"
+              requiresAccount={true}
             />
 
             {/* Photo Analysis Feature */}
@@ -112,6 +119,7 @@ export default function Home() {
               icon="📸"
               href="/photo-analysis"
               ctaText="Analyze Photos"
+              requiresAccount={true}
             />
 
             {/* SEO Optimization Feature */}
@@ -121,6 +129,7 @@ export default function Home() {
               icon="🔍"
               href="/seo-optimization"
               ctaText="Optimize SEO"
+              requiresAccount={true}
             />
 
             {/* Review Analysis Feature */}
@@ -132,12 +141,17 @@ export default function Home() {
               <p className="text-gray-600 mb-6">
                 Gain valuable insights from your guest reviews. Identify patterns, sentiment trends, and areas for improvement to enhance your listing.
               </p>
-              <Link 
-                href="/review-analysis" 
-                className="text-blue-500 hover:text-blue-700 font-medium flex items-center"
-              >
-                Analyze Reviews <span className="ml-1">→</span>
-              </Link>
+              <div className="flex items-center justify-between">
+                <Link 
+                  href="/review-analysis" 
+                  className="text-blue-500 hover:text-blue-700 font-medium flex items-center"
+                >
+                  Analyze Reviews <span className="ml-1">→</span>
+                </Link>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  Account Required
+                </span>
+              </div>
             </div>
 
             {/* Pricing Strategy Feature */}
@@ -147,6 +161,7 @@ export default function Home() {
               icon="💰"
               href="/pricing-strategy"
               ctaText="Optimize Pricing"
+              requiresAccount={true}
             />
 
             {/* Amenity Recommendations Feature */}
@@ -156,6 +171,7 @@ export default function Home() {
               icon="🛋️"
               href="/amenity-recommendations"
               ctaText="Get Recommendations"
+              requiresAccount={true}
             />
           </div>
         </div>
@@ -171,6 +187,9 @@ export default function Home() {
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Optimizing your Airbnb listing has never been easier
             </p>
+            <div className="mt-4 inline-block bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+              Free listing analysis - No account required!
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -196,8 +215,9 @@ export default function Home() {
               href="/analyze" 
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-lg inline-block transition-colors"
             >
-              Analyze My Listing Now
+              Analyze My Listing Now - Free!
             </Link>
+            <p className="mt-3 text-gray-600">No signup required. Try before you create an account.</p>
           </div>
         </div>
       </section>
@@ -241,14 +261,22 @@ export default function Home() {
             Ready to Optimize Your Airbnb Listing?
           </h2>
           <p className="text-xl mb-8 max-w-3xl mx-auto">
-            Join thousands of hosts who are maximizing their earnings and delighting their guests.
+            Start with our free listing analysis, then unlock premium features by creating an account.
           </p>
-          <Link 
-            href="/analyze" 
-            className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-8 py-4 rounded-lg inline-block transition-colors"
-          >
-            Get Started for Free
-          </Link>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link 
+              href="/analyze" 
+              className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-8 py-4 rounded-lg inline-block transition-colors"
+            >
+              Free Listing Analysis
+            </Link>
+            <Link 
+              href="/account/signup" 
+              className="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-8 py-4 rounded-lg inline-block transition-colors border border-white"
+            >
+              Create Account
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -305,13 +333,15 @@ function FeatureCard({
   description, 
   icon, 
   href, 
-  ctaText 
+  ctaText,
+  requiresAccount = false
 }: { 
   title: string; 
   description: string; 
   icon: string; 
   href: string; 
-  ctaText: string; 
+  ctaText: string;
+  requiresAccount?: boolean;
 }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-md">
@@ -319,12 +349,19 @@ function FeatureCard({
         <div className="text-4xl mb-4">{icon}</div>
         <h3 className="text-xl font-semibold mb-2">{title}</h3>
         <p className="text-gray-600 mb-6">{description}</p>
-        <Link 
-          href={href} 
-          className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
-        >
-          {ctaText} <span className="ml-1">→</span>
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link 
+            href={href} 
+            className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+          >
+            {ctaText} <span className="ml-1">→</span>
+          </Link>
+          {requiresAccount && (
+            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              Account Required
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
