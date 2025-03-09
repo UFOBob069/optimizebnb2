@@ -139,7 +139,7 @@ async function scrapeAirbnbListing(url: string) {
     
     // Add a longer delay to ensure the page is fully loaded
     console.log('Waiting for page to fully load...');
-    await page.waitForTimeout(10000);
+    await new Promise(resolve => setTimeout(resolve, 10000));
     
     // Log the current URL to verify we're on the right page
     const currentUrl = page.url();
@@ -219,7 +219,7 @@ async function scrapeAirbnbListing(url: string) {
         window.scrollBy(0, 800);
       });
       // Wait between scrolls
-      await page.waitForTimeout(1000);
+      await new Promise(resolve => setTimeout(resolve, 1000));
       if (i === 5) {
         await takeScreenshot('mid-scroll');
       }
@@ -227,7 +227,7 @@ async function scrapeAirbnbListing(url: string) {
     
     // Wait longer for content to load after scrolling
     console.log('Waiting for content to load after scrolling...');
-    await page.waitForTimeout(10000);
+    await new Promise(resolve => setTimeout(resolve, 10000));
     
     // Take a screenshot after scrolling
     await takeScreenshot('after-scroll');
@@ -256,7 +256,7 @@ async function scrapeAirbnbListing(url: string) {
       console.log('Detected and attempted to close modal dialogs');
       await takeScreenshot('after-closing-modals');
       // Wait after closing modals
-      await page.waitForTimeout(3000);
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
     
     // Scroll to the reviews section specifically
@@ -302,7 +302,7 @@ async function scrapeAirbnbListing(url: string) {
     console.log(`Scrolled to reviews section: ${scrolledToReviews}`);
     
     // Wait after scrolling to reviews
-    await page.waitForTimeout(5000);
+    await new Promise(resolve => setTimeout(resolve, 5000));
     await takeScreenshot('after-scroll-to-reviews');
     
     // Try to click "Show all reviews" button if it exists
@@ -361,7 +361,7 @@ async function scrapeAirbnbListing(url: string) {
     if (reviewButtonClicked) {
       // Wait longer after clicking the button
       console.log('Waiting after clicking review button...');
-      await page.waitForTimeout(8000);
+      await new Promise(resolve => setTimeout(resolve, 8000));
       await takeScreenshot('after-review-button-click');
     }
     

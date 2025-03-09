@@ -145,7 +145,7 @@ async function captureReviewsScreenshot(url: string) {
     
     // Add a longer delay to ensure the page is fully loaded
     console.log('Waiting for page to fully load...');
-    await page.waitForTimeout(10000);
+    await new Promise(resolve => setTimeout(resolve, 10000));
     
     // Log the current URL to verify we're on the right page
     const currentUrl = page.url();
@@ -174,12 +174,12 @@ async function captureReviewsScreenshot(url: string) {
         window.scrollBy(0, 800);
       });
       // Wait between scrolls
-      await page.waitForTimeout(1000);
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
     
     // Wait longer for content to load after scrolling
     console.log('Waiting for content to load after scrolling...');
-    await page.waitForTimeout(5000);
+    await new Promise(resolve => setTimeout(resolve, 5000));
     
     // Try to find and scroll to the reviews section
     console.log('Attempting to scroll to reviews section...');
@@ -222,7 +222,7 @@ async function captureReviewsScreenshot(url: string) {
     console.log(`Reviews section found: ${reviewSectionFound}`);
     
     // Wait after scrolling to reviews
-    await page.waitForTimeout(3000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
     
     // IMPROVED: More targeted approach to find and click "Show all reviews" button
     console.log('Looking for "Show all reviews" button...');
@@ -301,7 +301,7 @@ async function captureReviewsScreenshot(url: string) {
     if (reviewButtonInfo.clicked) {
       // Wait longer after clicking the button for modal to open
       console.log('Waiting for review modal to open...');
-      await page.waitForTimeout(5000);
+      await new Promise(resolve => setTimeout(resolve, 5000));
       
       // Take a screenshot after clicking the button
       await takeScreenshot('after-review-button-click');
@@ -333,7 +333,7 @@ async function captureReviewsScreenshot(url: string) {
       if (modalFound) {
         // Wait for modal content to load
         console.log('Waiting for modal content to load...');
-        await page.waitForTimeout(3000);
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Take a screenshot of the modal
         await takeScreenshot('review-modal');
@@ -454,7 +454,7 @@ async function captureReviewsScreenshot(url: string) {
         
         // Wait after scrolling to allow content to load
         console.log('Waiting after enhanced scrolling...');
-        await page.waitForTimeout(3000);
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Take a screenshot after enhanced scrolling
         await takeScreenshot('review-modal-after-enhanced-scrolling');
@@ -463,7 +463,7 @@ async function captureReviewsScreenshot(url: string) {
         console.log('Trying keyboard navigation to scroll...');
         for (let i = 0; i < 20; i++) {
           await page.keyboard.press('PageDown');
-          await page.waitForTimeout(500);
+          await new Promise(resolve => setTimeout(resolve, 500));
           
           // Take a screenshot every few page downs
           if (i % 5 === 0) {
@@ -474,11 +474,11 @@ async function captureReviewsScreenshot(url: string) {
         // Scroll back to top
         for (let i = 0; i < 5; i++) {
           await page.keyboard.press('Home');
-          await page.waitForTimeout(200);
+          await new Promise(resolve => setTimeout(resolve, 200));
         }
         
         // Wait after keyboard scrolling
-        await page.waitForTimeout(2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Take a final screenshot of the modal after all scrolling attempts
         await takeScreenshot('review-modal-final');
@@ -515,7 +515,7 @@ async function captureReviewsScreenshot(url: string) {
         });
         
         // Wait after custom scrolling
-        await page.waitForTimeout(2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Take a final screenshot after all scrolling attempts
         await takeScreenshot('review-modal-after-all-scrolling');
@@ -725,7 +725,7 @@ async function captureReviewsScreenshot(url: string) {
         
         // Wait after enhanced custom scrolling
         console.log('Waiting after enhanced custom scrolling...');
-        await page.waitForTimeout(3000);
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
         // Take a final screenshot after enhanced scrolling
         await takeScreenshot('review-modal-after-enhanced-scrolling');
@@ -763,7 +763,7 @@ async function captureReviewsScreenshot(url: string) {
           }, scrollAttempt * 500); // Scroll 500px at a time
           
           // Wait between scrolls
-          await page.waitForTimeout(1000);
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
           // Take a screenshot every other scroll
           if (scrollAttempt % 2 === 0) {
@@ -1283,7 +1283,7 @@ async function analyzeReviewsWithOpenAI(reviews: Review[], averageRating: number
     
     // Call OpenAI API
     const response = await openaiClient.chat.completions.create({
-      model: "gpt-4-turbo",
+      model: "gpt-3.5-turbo",
       messages: [
         { role: "system", content: "You are an AI assistant that analyzes Airbnb reviews and provides structured insights." },
         { role: "user", content: prompt }

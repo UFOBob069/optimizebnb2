@@ -271,7 +271,7 @@ async function scrapeAirbnbListing(url, address) {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
     
     // Wait a bit for any dynamic content to load
-    await page.waitForTimeout(2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     // Take a screenshot for debugging
     await page.screenshot({ path: 'airbnb-listing.png' });
@@ -482,7 +482,7 @@ async function scrapeAirbnbListing(url, address) {
       // After taking the screenshot, try a more direct approach to extract details
       try {
         // Wait for the page to fully render
-        await page.waitForTimeout(1000);
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Try to extract details directly from the page content
         const directDetails = await page.evaluate(() => {
