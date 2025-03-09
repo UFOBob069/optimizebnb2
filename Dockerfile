@@ -1,37 +1,32 @@
-# Use Node.js 20 with Debian Bullseye as the base image
+# Use Node.js as the base image
 FROM node:20-bullseye
 
-# Install Google Chrome
-RUN apt-get update \
-    && apt-get install -y wget gnupg \
-    && wget -q -O /usr/share/keyrings/google-chrome-keyring.gpg https://dl-ssl.google.com/linux/linux_signing_key.pub \
-    && echo "deb [signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
-    --no-install-recommends \
-    && chmod -R 777 /usr/bin/google-chrome \
-    && rm -rf /var/lib/apt/lists/*
+# Install dependencies & Google Chrome
+RUN apt-get update && apt-get install -y wget gnupg curl && \
+    curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | tee /usr/share/keyrings/google-chrome-keyring.gpg > /dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && \
+    apt-get install -y google-chrome-stable --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Copy package.json and install dependencies
+COPY package*.json ./
+RUN npm install
 
-# Install dependencies
-RUN npm install --omit=dev
-
-# Copy the rest of the application
+# Copy application files
 COPY . .
 
-# Build the Next.js application
+# Build Next.js app
 RUN npm run build
 
-# Set Puppeteer environment variables
+# Set Puppeteer to use installed Chrome
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 
-# Expose port
+# Expose the app's port
 EXPOSE 3000
 
 # Start the application
