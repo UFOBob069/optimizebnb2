@@ -88,12 +88,16 @@ async function scrapeAirbnbListing(url: string) {
     // Launch browser with puppeteer (which includes Chromium)
     browser = await puppeteer.launch({
       headless: "new",
+      executablePath: '/usr/bin/google-chrome', // This matches the path in your Dockerfile
       args: [
         '--no-sandbox', 
         '--disable-setuid-sandbox', 
         '--window-size=1920,1080',
-        '--disable-dev-shm-usage', // Add this for Docker/cloud environments
-        '--disable-gpu' // Add this for Docker/cloud environments
+        '--disable-dev-shm-usage', 
+        '--disable-gpu',
+        '--disable-extensions',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins,site-per-process'
       ]
     });
     
