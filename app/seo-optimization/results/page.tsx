@@ -60,6 +60,67 @@ export default function SEOResultsPage() {
       });
   };
 
+  /**
+   * Format ChatGPT SEO improvement outputs for consistent UI display
+   * This function processes raw SEO improvement text and formats it properly
+   */
+  const formatSeoEnhancements = (improvements: string[]) => {
+    if (!improvements || !Array.isArray(improvements)) return [];
+    
+    // First, let's manually fix some common issues before processing
+    const preprocessedImprovements = improvements.map(item => {
+      // Fix "Through rates" standalone items
+      if (/^\d+\.\s*Through rates/.test(item)) {
+        return item.replace(/Through rates/, "Click-Through rates");
+      }
+      return item;
+    });
+    
+    // Join all improvements into a raw string for better processing
+    const rawText = preprocessedImprovements.join('\n');
+    
+    // Now let's extract complete numbered items with regex
+    const numberedItemRegex = /(\d+\.\s*[^0-9\n]+)/g;
+    const extractedItems = rawText.match(numberedItemRegex) || [];
+    
+    // Process each extracted item
+    return extractedItems.map(item => {
+      let processed = item.trim();
+      
+      // Fix "Friendly," at the beginning of items
+      if (/^\d+\.\s*Friendly,/.test(processed)) {
+        processed = processed.replace(/Friendly,/, "Pet-Friendly,");
+      }
+      
+      // Fix "Through rates" anywhere in the text
+      if (/through rates/i.test(processed)) {
+        processed = processed.replace(/through rates/gi, "Click-Through rates");
+      }
+      
+      // Handle markdown formatting
+      if (processed.includes('**')) {
+        // Extract title and description
+        const titleMatch = processed.match(/^(\d+\.\s*)([^*]+)\*\*(.+)/);
+        if (titleMatch) {
+          const [_, number, title, description] = titleMatch;
+          return `${number}**${title.trim()}**: ${description.replace(/\*\*/g, '').trim()}`;
+        }
+      }
+      
+      // Fix items that end with "click" (likely split)
+      if (processed.endsWith('click')) {
+        processed += '-through rates';
+      }
+      
+      // Fix items that have "Friendly, beachfront" without context
+      if (/Friendly, beachfront/.test(processed) && !processed.includes('Pet-')) {
+        processed = processed.replace(/Friendly/, 'Pet-Friendly');
+      }
+      
+      return processed;
+    });
+  };
+
   if (!mounted) {
     return <div className="min-h-screen flex items-center justify-center">
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -358,6 +419,33 @@ export default function SEOResultsPage() {
           </div>
         </div>
       </div>
+
+      {/* SEO Improvements Section */}
+      {guide?.seoImprovements && guide.seoImprovements.length > 0 && (
+        <div className="bg-blue-50 shadow-md rounded-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">SEO Improvements</h2>
+          <div className="space-y-4">
+            {formatSeoEnhancements(guide.seoImprovements).map((improvement, index) => (
+              <div key={index} className="flex items-start seo-improvement-item">
+                <div className="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                  <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <p className="text-gray-700">
+                  {improvement.includes('**') ? (
+                    <span dangerouslySetInnerHTML={{ 
+                      __html: improvement.replace(/\*\*([^*:]+)\*\*:?/, '<strong>$1</strong>:') 
+                    }} />
+                  ) : (
+                    improvement
+                  )}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

@@ -653,6 +653,11 @@ export async function POST(request: Request) {
       "Added specific details to build trust with potential guests"
     ];
     
+    // Fix the "Friendly" parsing issue
+    const fixedSeoImprovements = seoImprovements.map(improvement => {
+      return improvement.replace(/^(\d+\.\s*)Friendly"/, "$1Friendly");
+    });
+    
     // Return the generated guide
     return NextResponse.json({ 
       success: true, 
@@ -661,7 +666,7 @@ export async function POST(request: Request) {
         sections,
         overallScore,
         keywords,
-        seoImprovements
+        seoImprovements: fixedSeoImprovements
       },
       message: 'SEO content generated successfully'
     });
