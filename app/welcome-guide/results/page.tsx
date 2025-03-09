@@ -10,6 +10,7 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     setMounted(true);
@@ -19,10 +20,21 @@ export default function ResultsPage() {
     
     if (storedGuide) {
       try {
-        setGuide(JSON.parse(storedGuide));
+        const parsedGuide = JSON.parse(storedGuide);
+        
+        // Validate that the parsed data has the expected structure
+        if (parsedGuide && typeof parsedGuide === 'object' && parsedGuide.sections) {
+          setGuide(parsedGuide);
+        } else {
+          console.error('Invalid guide data structure:', parsedGuide);
+          setError('The guide data is in an invalid format. Please try generating a new guide.');
+        }
       } catch (error) {
         console.error('Error parsing guide data:', error);
+        setError('There was an error loading your guide. Please try generating a new guide.');
       }
+    } else {
+      console.log('No guide data found in localStorage');
     }
     
     setLoading(false);
@@ -70,12 +82,29 @@ export default function ResultsPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+        <h1 className="text-3xl font-bold mb-6">Error Loading Guide</h1>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+          <p className="text-lg text-red-700 mb-4">{error}</p>
+          <Link
+            href="/welcome-guide"
+            className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
+          >
+            Create New Guide
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!guide) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
         <h1 className="text-3xl font-bold mb-6">No Guide Found</h1>
         <p className="text-lg mb-8">
-          We couldn't find your generated guide. Please try creating a new one.
+          We couldn&apos;t find your welcome guide. Please try creating a new one.
         </p>
         <Link
           href="/welcome-guide"

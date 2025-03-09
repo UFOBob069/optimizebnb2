@@ -133,18 +133,43 @@ export default function WelcomeGuidePage() {
       clearInterval(processingTimer);
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate guide');
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to generate guide');
+          } else {
+            // Handle non-JSON responses (like HTML error pages)
+            const errorText = await response.text();
+            console.error('Server returned non-JSON response:', errorText.substring(0, 200) + '...');
+            throw new Error('Server error: The server returned an invalid response. Please try again later.');
+          }
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError);
+          throw new Error('Failed to generate guide. Please try again later.');
+        }
       }
       
-      const data = await response.json();
-      setGuide(data.guide);
-      setStep("result");
-      
-      // Store the guide data in localStorage for the results page
-      if (mounted) {
-        localStorage.setItem('generatedGuide', JSON.stringify(data.guide));
-        router.push('/welcome-guide/results');
+      try {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const responseText = await response.text();
+          console.error('Expected JSON but got:', responseText.substring(0, 200) + '...');
+          throw new Error('Server returned an invalid response format. Please try again later.');
+        }
+        
+        const data = await response.json();
+        setGuide(data.guide);
+        setStep("result");
+        
+        // Store the guide data in localStorage for the results page
+        if (mounted) {
+          localStorage.setItem('generatedGuide', JSON.stringify(data.guide));
+          router.push('/welcome-guide/results');
+        }
+      } catch (parseError) {
+        console.error('Error parsing successful response:', parseError);
+        throw new Error('Failed to process the generated guide. Please try again later.');
       }
       
     } catch (err) {
