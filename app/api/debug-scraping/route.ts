@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 
 // Debug endpoint for testing Airbnb scraping
 export async function GET(request: Request) {
@@ -100,9 +100,14 @@ async function scrapeAirbnbListing(url: string, address: string) {
   // Launch a headless browser
   console.log(`Launching browser with executable path: ${executablePath || 'default'}`);
   const browser = await puppeteer.launch({
-    headless: 'new',
+    headless: true,
     executablePath,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: [
+      '--no-sandbox', 
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu'
+    ]
   });
   
   try {

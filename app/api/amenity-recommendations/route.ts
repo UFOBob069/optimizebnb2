@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs/promises';
@@ -101,18 +101,16 @@ async function scrapeAirbnbListing(url: string) {
     const executablePath = await findChromePath();
     console.log(`Chrome executable path: ${executablePath || 'Not found, using default'}`);
     
-    // Launch browser with or without executablePath
-    const launchOptions: any = {
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--window-size=1920,1080']
-    };
-    
-    if (executablePath) {
-      launchOptions.executablePath = executablePath;
-    }
-    
-    console.log('Launching browser with options:', launchOptions);
-    browser = await puppeteer.launch(launchOptions);
+    // Launch browser with puppeteer (which includes Chromium)
+    browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage', // Add this for Docker/cloud environments
+        '--disable-gpu' // Add this for Docker/cloud environments
+      ]
+    });
     
     // Create a new page
     const page = await browser.newPage();

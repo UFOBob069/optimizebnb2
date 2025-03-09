@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server';
 import { db } from '../../firebase/config';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import OpenAI from 'openai';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer'; // Using the full puppeteer package with bundled Chromium
 import * as fs from 'fs';
-import * as path from 'path';
 import * as os from 'os';
 
 // Initialize OpenAI
@@ -41,7 +40,7 @@ export async function POST(request: Request) {
       // Continue with analysis even if storage fails
     }
 
-    let listingData;
+    let listingData = { propertyName: extractListingName(url) || 'Airbnb Listing' };
     let analysis;
 
     try {
@@ -54,7 +53,6 @@ export async function POST(request: Request) {
       console.error('Error during scraping or analysis:', error);
       // Fall back to simulated analysis if scraping or OpenAI fails
       analysis = simulateAnalysis();
-      listingData = { propertyName: extractListingName(url) };
     }
 
     // Return the analysis results
@@ -67,48 +65,6 @@ export async function POST(request: Request) {
     console.error('Error analyzing listing:', error);
     return NextResponse.json({ error: 'Failed to analyze listing' }, { status: 500 });
   }
-}
-
-// Function to find Chrome executable path
-async function findChromePath() {
-  // Check if path is provided in environment variables
-  if (process.env.CHROME_EXECUTABLE_PATH) {
-    return process.env.CHROME_EXECUTABLE_PATH;
-  }
-  
-  // Default paths for different operating systems
-  const platform = os.platform();
-  let defaultPaths: string[] = [];
-  
-  if (platform === 'win32') {
-    defaultPaths = [
-      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-      process.env.LOCALAPPDATA + '\\Google\\Chrome\\Application\\chrome.exe'
-    ];
-  } else if (platform === 'darwin') {
-    defaultPaths = [
-      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-    ];
-  } else {
-    defaultPaths = [
-      '/usr/bin/google-chrome',
-      '/usr/bin/google-chrome-stable'
-    ];
-  }
-  
-  // Check if any of the default paths exist
-  for (const chromePath of defaultPaths) {
-    try {
-      if (fs.existsSync(chromePath)) {
-        return chromePath;
-      }
-    } catch (error) {
-      console.error(`Error checking Chrome path ${chromePath}:`, error);
-    }
-  }
-  
-  return null; // Let Puppeteer use its own bundled Chromium
 }
 
 // Function to scrape Airbnb listing content
@@ -127,22 +83,19 @@ async function scrapeAirbnbListing(url: string) {
   
   let browser;
   try {
-    // Find Chrome executable path
-    const executablePath = await findChromePath();
-    console.log(`Chrome executable path: ${executablePath || 'Not found, using default'}`);
+    console.log('Launching browser with puppeteer...');
     
-    // Launch browser with or without executablePath
-    const launchOptions: any = {
+    // Launch browser with puppeteer (which includes Chromium)
+    browser = await puppeteer.launch({
       headless: "new",
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080']
-    };
-    
-    if (executablePath) {
-      launchOptions.executablePath = executablePath;
-    }
-    
-    console.log('Launching browser with options:', launchOptions);
-    browser = await puppeteer.launch(launchOptions);
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox', 
+        '--window-size=1920,1080',
+        '--disable-dev-shm-usage', // Add this for Docker/cloud environments
+        '--disable-gpu' // Add this for Docker/cloud environments
+      ]
+    });
     
     // Create a new page
     const page = await browser.newPage();
@@ -162,15 +115,15 @@ async function scrapeAirbnbListing(url: string) {
       type: 'jpeg',
       quality: 70
     });
-    const screenshotBase64 = screenshotBuffer.toString('base64');
+    const screenshotBase64 = Buffer.from(screenshotBuffer).toString('base64');
     console.log('Screenshot taken');
     
     // Extract property name
     const propertyName = await page.evaluate(() => {
       // Try different selectors for the property name
       const titleElement = document.querySelector('h1') || 
-                          document.querySelector('[data-section-id="TITLE_DEFAULT"] h1') ||
-                          document.querySelector('[data-section-id="TITLE_DEFAULT"] div');
+                           document.querySelector('[data-section-id="TITLE_DEFAULT"] h1') ||
+                           document.querySelector('[data-section-id="TITLE_DEFAULT"] div');
       
       return titleElement ? titleElement.textContent?.trim() : 'Airbnb Property';
     });
@@ -424,7 +377,7 @@ async function scrapeAirbnbListing(url: string) {
 }
 
 // Function to analyze listing with OpenAI
-async function analyzeWithOpenAI(listingData: Record<string, any>) {
+async function analyzeWithOpenAI(listingData) {
   try {
     if (!process.env.OPENAI_API_KEY) {
       console.log('OpenAI API key not available, returning simulated analysis');
@@ -445,17 +398,17 @@ async function analyzeWithOpenAI(listingData: Record<string, any>) {
         Analyze this Airbnb listing and provide detailed feedback to help the host improve their listing and attract more bookings.
         
         LISTING DETAILS:
-        Property Name: ${listingData.propertyName}
-        Property Type and Location: ${listingData.propertyTypeAndLocation}
-        Description: ${listingData.description}
-        Amenities: ${listingData.amenities.join(', ')}
-        Location: ${listingData.location}
-        Host: ${listingData.host}
-        Price: ${listingData.price}
-        Reviews: ${listingData.reviews.join(' | ')}
+        Property Name: ${listingData.propertyName || ''}
+        Property Type and Location: ${listingData.propertyTypeAndLocation || ''}
+        Description: ${listingData.description || ''}
+        Amenities: ${listingData.amenities ? listingData.amenities.join(', ') : ''}
+        Location: ${listingData.location || ''}
+        Host: ${listingData.host || ''}
+        Price: ${listingData.price || ''}
+        Reviews: ${listingData.reviews ? listingData.reviews.join(' | ') : ''}
         
         Additional Information:
-        ${listingData.additionalInfo.sections.map((s: {heading: string, content: string}) => `${s.heading}: ${s.content}`).join('\n\n')}
+        ${listingData.additionalInfo?.sections.map(s => `${s.heading}: ${s.content}`).join('\n\n') || ''}
         
         Please provide your analysis in the following format:
         
@@ -475,31 +428,40 @@ async function analyzeWithOpenAI(listingData: Record<string, any>) {
     
     // Add the screenshot if available
     if (listingData.screenshot) {
-      messages.push({
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Here is a screenshot of the Airbnb listing. Please use this to provide additional insights in your analysis."
-          },
-          {
-            type: "image_url",
-            image_url: {
-              url: `data:image/jpeg;base64,${listingData.screenshot}`
+      try {
+        // Add proper JPEG data URL prefix
+        const imageUrl = `data:image/jpeg;base64,${listingData.screenshot}`;
+        
+        messages.push({
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "Here is a screenshot of the Airbnb listing. Please use this to provide additional insights in your analysis."
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: imageUrl
+              }
             }
-          }
-        ]
-      } as any);
+          ]
+        });
+        console.log('Screenshot added to OpenAI request');
+      } catch (error) {
+        console.error('Invalid base64 screenshot, skipping image analysis:', error);
+        // Continue without the screenshot
+      }
     }
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
-      messages: messages as any,
+      messages,
       temperature: 0.7,
       max_tokens: 1500
     });
     
-    return response.choices[0].message.content;
+    return response.choices[0].message.content || simulateAnalysis();
   } catch (error) {
     console.error('Error analyzing with OpenAI:', error);
     return simulateAnalysis();
