@@ -459,7 +459,7 @@ async function analyzeWithOpenAI(listingData) {
     }
     
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-3.5-turbo",
       messages,
       temperature: 0.7,
       max_tokens: 1500

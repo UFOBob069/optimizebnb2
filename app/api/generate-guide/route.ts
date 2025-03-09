@@ -13,6 +13,9 @@ const openai = new OpenAI({
 // In-memory store for emails (in a real app, you'd use a database)
 const subscriberEmails: Set<string> = new Set();
 
+// Add this at the top of the file, after the imports
+export const maxDuration = 300; // Set maximum duration to 300 seconds (5 minutes)
+
 // Function to find Chrome executable path based on OS
 async function findChromePath() {
   console.log('Attempting to find Chrome executable path...');
@@ -694,60 +697,76 @@ async function generateGuideWithAI(propertyData, selectedSections) {
   console.log(`Selected sections: ${selectedSections.join(', ')}`);
   
   try {
-    // Create original content sections
-    const originalSections = {};
-    
     // Create sections object for optimized content
     const sections = {};
-    
-    // Prepare SEO analysis object
     const seoAnalysis = {};
     
-    // Extract keywords from property data
-    const extractedKeywords = extractKeywords(propertyData);
-    console.log(`Extracted keywords: ${extractedKeywords.join(', ')}`);
+    // Process sections in batches to avoid timeouts
+    const BATCH_SIZE = 3; // Process 3 sections at a time
+    const batches = [];
     
-    // Calculate SEO scores
-    const seoScore = {
-      overall: Math.floor(Math.random() * 10) + 90, // Simulated score between 90-100
-      keywordDensity: Math.floor(Math.random() * 15) + 85, // Simulated score between 85-100
-      readability: Math.floor(Math.random() * 10) + 90 // Simulated score between 90-100
-    };
+    // Split sections into batches
+    for (let i = 0; i < selectedSections.length; i += BATCH_SIZE) {
+      batches.push(selectedSections.slice(i, i + BATCH_SIZE));
+    }
     
-    // Check if OpenAI API key is available
-    const useOpenAI = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your-api-key';
-    console.log(`Using OpenAI for content generation: ${useOpenAI}`);
-    
-    // Process each selected section
-    for (const section of selectedSections) {
-      console.log(`Processing section: ${section}`);
+    // Process each batch sequentially
+    for (const batch of batches) {
+      console.log(`Processing batch of ${batch.length} sections: ${batch.join(', ')}`);
       
-      try {
-        if (useOpenAI) {
-          // Generate content with OpenAI
-          sections[section] = await generateContentWithOpenAI(section, propertyData);
-      } else {
-          // Fallback to template-based content
-        sections[section] = generateTemplateContent(section, propertyData);
+      // Process sections in this batch concurrently
+      const batchPromises = batch.map(async (section) => {
+        try {
+          console.log(`Starting generation for section: ${section}`);
+          const useOpenAI = true; // Always use OpenAI for better quality
+          
+          let sectionContent;
+          if (useOpenAI) {
+            // Generate content with OpenAI
+            sectionContent = await generateContentWithOpenAI(section, propertyData);
+          } else {
+            // Fallback to template-based content
+            sectionContent = generateTemplateContent(section, propertyData);
+          }
+          
+          return {
+            section,
+            content: sectionContent,
+            success: true
+          };
+        } catch (sectionError) {
+          console.error(`Error processing section ${section}:`, sectionError);
+          return {
+            section,
+            content: `Content for ${section} section will be generated.`,
+            success: false
+          };
         }
+      });
+      
+      // Wait for all sections in this batch to complete
+      const batchResults = await Promise.all(batchPromises);
+      
+      // Add results to sections object
+      for (const result of batchResults) {
+        sections[result.section] = result.content;
         
         // Generate simulated SEO analysis
-        seoAnalysis[section] = {
-          suggestions: [
+        seoAnalysis[result.section] = {
+          suggestions: result.success ? [
             "Add more specific details about the property",
             "Include more keywords related to the location",
-            "Make the content more engaging for potential guests"
-          ],
-          score: Math.floor(Math.random() * 20) + 80 // Random score between 80-100
+            "Use more descriptive language",
+            "Add specific instructions for guests"
+          ] : ["Error generating content, please try again"],
+          score: result.success ? 85 : 70
         };
-      } catch (sectionError) {
-        console.error(`Error processing section ${section}:`, sectionError);
-        // Provide a fallback for this section
-        sections[section] = `Content for ${section} section will be generated.`;
-        seoAnalysis[section] = {
-          suggestions: ["Error generating content, please try again"],
-          score: 70
-        };
+      }
+      
+      // Add a small delay between batches to allow for other processes
+      if (batches.length > 1) {
+        console.log('Pausing briefly between batches...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
     
@@ -755,34 +774,26 @@ async function generateGuideWithAI(propertyData, selectedSections) {
     
     return {
       propertyName: propertyData.propertyName,
+      location: `${propertyData.location.city}, ${propertyData.location.state}, ${propertyData.location.country}`,
       sections,
-      originalSections: {},
       seoAnalysis,
-      keywords: extractedKeywords,
-      seoScore,
-      pricingStrategy: propertyData.pricingStrategy || {}
+      keywords: extractKeywords(propertyData)
     };
   } catch (error) {
     console.error('Error generating guide:', error);
     
-    // Create a minimal fallback guide with basic content
+    // Provide fallback content
     const fallbackSections = {};
     for (const section of selectedSections) {
       fallbackSections[section] = `Content for ${section} section will be available soon.`;
     }
     
     return {
-      propertyName: propertyData.propertyName || "Your Property",
+      propertyName: propertyData.propertyName,
+      location: `${propertyData.location.city}, ${propertyData.location.state}, ${propertyData.location.country}`,
       sections: fallbackSections,
-      originalSections: {},
       seoAnalysis: {},
-      keywords: ["property", "airbnb", "listing", "accommodation"],
-      seoScore: {
-        overall: 70,
-        keywordDensity: 70,
-        readability: 70
-      },
-      pricingStrategy: {}
+      keywords: []
     };
   }
 }
@@ -831,7 +842,7 @@ Host: ${propertyData.hostInfo.name} (${propertyData.hostInfo.isSuperhost ? 'Supe
     
     // Call OpenAI API
     const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo",
+      model: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -1121,7 +1132,7 @@ export async function POST(request) {
     let guide;
     try {
       guide = await generateGuideWithAI(propertyData, sections);
-      console.log('Successfully generated guide');
+    console.log('Successfully generated guide');
     } catch (error) {
       console.error('Error generating guide content:', error);
       return NextResponse.json({ 

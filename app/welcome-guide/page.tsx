@@ -78,6 +78,10 @@ export default function WelcomeGuidePage() {
       return;
     }
     
+    // Calculate estimated processing time based on number of sections
+    const estimatedTimePerSection = 30; // seconds per section
+    const totalEstimatedTime = Math.max(120, selectedSections.length * estimatedTimePerSection); // minimum 2 minutes
+    
     setError("");
     setLoading(true);
     setStep("processing");
@@ -92,17 +96,25 @@ export default function WelcomeGuidePage() {
     // Store the timer reference
     setProcessingTimer(timer);
     
-    // Simulate step 1 completion after 10 seconds
+    // Adjust step completion times based on number of sections
+    const step1Time = Math.min(10000, totalEstimatedTime * 1000 * 0.2); // 20% of total time
+    const step2Time = Math.min(30000, totalEstimatedTime * 1000 * 0.6); // 60% of total time
+    
+    // Simulate step 1 completion
     setTimeout(() => {
       setCurrentStep(2);
-    }, 10000);
+    }, step1Time);
     
-    // Simulate step 2 completion after 30 seconds
+    // Simulate step 2 completion
     setTimeout(() => {
       setCurrentStep(3);
-    }, 30000);
+    }, step2Time);
     
     try {
+      // Set up the fetch with a longer timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), totalEstimatedTime * 1000 + 30000); // Add 30 seconds buffer
+      
       // Call our API endpoint to generate the guide
       const response = await fetch('/api/generate-guide', {
         method: 'POST',
@@ -115,7 +127,11 @@ export default function WelcomeGuidePage() {
           address,
           sections: selectedSections 
         }),
+        signal: controller.signal
       });
+      
+      // Clear the timeout
+      clearTimeout(timeoutId);
       
       // Clear the timer
       if (processingTimer) {
@@ -186,8 +202,15 @@ export default function WelcomeGuidePage() {
         clearInterval(processingTimer);
       }
       
-      console.error('Error generating guide:', err);
-      setError(err instanceof Error ? err.message : "Failed to generate guide. Please try again later.");
+      // Check if this is an abort error (timeout)
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        console.error('Request timed out:', err);
+        setError("The request took too long to complete. Please try again with fewer sections.");
+      } else {
+        console.error('Error generating guide:', err);
+        setError(err instanceof Error ? err.message : "Failed to generate guide. Please try again later.");
+      }
+      
       setStep("form");
     } finally {
       setLoading(false);
@@ -195,8 +218,9 @@ export default function WelcomeGuidePage() {
   };
 
   const renderProcessingSteps = () => {
-    // Calculate estimated time remaining (about 2 minutes total)
-    const totalEstimatedTime = 120; // 2 minutes in seconds
+    // Calculate estimated time remaining based on number of sections
+    const estimatedTimePerSection = 30; // seconds per section
+    const totalEstimatedTime = Math.max(120, selectedSections.length * estimatedTimePerSection); // minimum 2 minutes
     const remainingTime = Math.max(0, totalEstimatedTime - processingTime);
     const minutes = Math.floor(remainingTime / 60);
     const seconds = remainingTime % 60;
