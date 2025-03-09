@@ -1069,15 +1069,30 @@ export async function POST(request) {
     
     // Validate required fields
     if (!url) {
-      return NextResponse.json({ error: 'Airbnb URL is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Airbnb URL is required' }, { 
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
     }
     
     if (!email) {
-      return NextResponse.json({ error: 'Email address is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Email address is required' }, { 
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
     }
     
     if (!sections || !Array.isArray(sections) || sections.length === 0) {
-      return NextResponse.json({ error: 'At least one section must be selected' }, { status: 400 });
+      return NextResponse.json({ error: 'At least one section must be selected' }, { 
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
     }
     
     console.log(`Processing request for URL: ${url}`);
@@ -1094,24 +1109,66 @@ export async function POST(request) {
       return NextResponse.json({ 
         error: 'Failed to process Airbnb listing', 
         message: error.message 
-      }, { status: 500 });
+      }, { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
     }
     
     // Generate guide with AI
-    const guide = await generateGuideWithAI(propertyData, sections);
-    console.log('Successfully generated guide');
+    let guide;
+    try {
+      guide = await generateGuideWithAI(propertyData, sections);
+      console.log('Successfully generated guide');
+    } catch (error) {
+      console.error('Error generating guide content:', error);
+      return NextResponse.json({ 
+        error: 'Failed to generate guide content', 
+        message: error.message 
+      }, { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+    }
+    
+    // Validate guide structure before returning
+    if (!guide || !guide.sections || Object.keys(guide.sections).length === 0) {
+      console.error('Generated guide has invalid structure:', guide);
+      return NextResponse.json({ 
+        error: 'Generated guide has invalid structure', 
+        message: 'The system generated an incomplete guide. Please try again.' 
+      }, { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+    }
     
     // Return the generated guide
     return NextResponse.json({ 
       success: true, 
       guide,
       message: 'Guide generated successfully'
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
   } catch (error) {
     console.error('Error processing request:', error);
     return NextResponse.json({ 
       error: 'Failed to generate guide', 
-      message: error.message 
-    }, { status: 500 });
+      message: error.message || 'Unknown error occurred'
+    }, { 
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
   }
 } 

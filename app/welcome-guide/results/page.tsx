@@ -4,40 +4,70 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+interface GuideSection {
+  [key: string]: string;
+}
+
+interface Guide {
+  propertyName: string;
+  location: string;
+  sections: GuideSection;
+}
+
 export default function ResultsPage() {
   const router = useRouter();
-  const [guide, setGuide] = useState(null);
+  const [guide, setGuide] = useState<Guide | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
     
-    // Retrieve guide data from localStorage
-    const storedGuide = localStorage.getItem('generatedGuide');
-    
-    if (storedGuide) {
-      try {
-        const parsedGuide = JSON.parse(storedGuide);
+    try {
+      // Only access localStorage on the client side
+      if (typeof window !== 'undefined') {
+        // Retrieve guide data from localStorage
+        const storedGuide = localStorage.getItem('generatedGuide');
         
-        // Validate that the parsed data has the expected structure
-        if (parsedGuide && typeof parsedGuide === 'object' && parsedGuide.sections) {
-          setGuide(parsedGuide);
-        } else {
-          console.error('Invalid guide data structure:', parsedGuide);
-          setError('The guide data is in an invalid format. Please try generating a new guide.');
+        // Skip processing if no data is found
+        if (!storedGuide) {
+          console.log('No guide data found in localStorage');
+          setLoading(false);
+          return;
         }
-      } catch (error) {
-        console.error('Error parsing guide data:', error);
-        setError('There was an error loading your guide. Please try generating a new guide.');
+        
+        // Check if we've accidentally received HTML instead of JSON
+        if (storedGuide.trim().startsWith('<!DOCTYPE') || storedGuide.trim().startsWith('<html')) {
+          console.error('Received HTML instead of JSON:', storedGuide.substring(0, 200));
+          setError('The system returned an HTML page instead of JSON data. Please try generating a new guide.');
+          setLoading(false);
+          return;
+        }
+        
+        try {
+          const parsedGuide = JSON.parse(storedGuide);
+          
+          // Validate that the parsed data has the expected structure
+          if (parsedGuide && typeof parsedGuide === 'object' && parsedGuide.sections) {
+            setGuide(parsedGuide as Guide);
+          } else {
+            console.error('Invalid guide data structure:', parsedGuide);
+            setError('The guide data is in an invalid format. Please try generating a new guide.');
+          }
+        } catch (parseError) {
+          console.error('Error parsing guide data:', parseError);
+          console.error('First 200 characters of stored guide:', storedGuide.substring(0, 200));
+          setError('There was an error loading your guide. Please try generating a new guide.');
+        }
       }
-    } else {
-      console.log('No guide data found in localStorage');
+    } catch (error) {
+      console.error('Unexpected error in useEffect:', error);
+      setError('An unexpected error occurred. Please try generating a new guide.');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   }, []);
 
   const handleCopyAll = () => {
@@ -55,7 +85,7 @@ export default function ResultsPage() {
       });
   };
 
-  const handleCopySection = (sectionKey) => {
+  const handleCopySection = (sectionKey: string) => {
     if (!guide || !guide.sections || !guide.sections[sectionKey]) return;
     
     navigator.clipboard.writeText(guide.sections[sectionKey])
@@ -225,7 +255,7 @@ export default function ResultsPage() {
       </div>
       
       <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
-        <h3 className="font-medium text-lg text-blue-800 mb-2">What's Next?</h3>
+        <h3 className="font-medium text-lg text-blue-800 mb-2">What&apos;s Next?</h3>
         <p className="mb-2">
           Your welcome guide has been generated based on your Airbnb listing. You can now:
         </p>
@@ -240,15 +270,15 @@ export default function ResultsPage() {
 }
 
 // Helper function to format section titles
-function formatSectionTitle(key) {
+function formatSectionTitle(key: string): string {
   return key.split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
 
 // Helper function to get section icons
-function getSectionIcon(sectionKey) {
-  const icons = {
+function getSectionIcon(sectionKey: string): string {
+  const icons: Record<string, string> = {
     welcome: '👋',
     property: '🏠',
     checkin: '🔑',

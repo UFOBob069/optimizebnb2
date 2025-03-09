@@ -36,6 +36,7 @@ export default function WelcomeGuidePage() {
   const [mounted, setMounted] = useState(false);
   const [processingTime, setProcessingTime] = useState(0);
   const [currentStep, setCurrentStep] = useState(1);
+  const [processingTimer, setProcessingTimer] = useState<NodeJS.Timeout | undefined>(undefined);
   
   // Available sections that can be included in the guide
   const availableSections: SectionOption[] = [
@@ -62,14 +63,8 @@ export default function WelcomeGuidePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate inputs
     if (!url) {
-      setError("Please enter your Airbnb listing URL");
-      return;
-    }
-    
-    if (!url.includes("airbnb.com")) {
-      setError("Please enter a valid Airbnb listing URL");
+      setError("Please enter an Airbnb listing URL");
       return;
     }
     
@@ -78,43 +73,36 @@ export default function WelcomeGuidePage() {
       return;
     }
     
-    if (!email.includes("@") || !email.includes(".")) {
-      setError("Please enter a valid email address");
-      return;
-    }
-    
-    if (!address) {
-      setError("Please enter the property address");
-      return;
-    }
-    
     if (selectedSections.length === 0) {
-      setError("Please select at least one section to include in your guide");
+      setError("Please select at least one section for your guide");
       return;
     }
     
-    setError(null);
+    setError("");
     setLoading(true);
     setStep("processing");
-    setProcessingTime(0);
-    setCurrentStep(1);
     
     // Start the processing timer
-    const processingTimer = setInterval(() => {
-      setProcessingTime(prevTime => prevTime + 1);
+    let seconds = 0;
+    const timer = setInterval(() => {
+      seconds++;
+      setProcessingTime(seconds);
     }, 1000);
     
+    // Store the timer reference
+    setProcessingTimer(timer);
+    
+    // Simulate step 1 completion after 10 seconds
+    setTimeout(() => {
+      setCurrentStep(2);
+    }, 10000);
+    
+    // Simulate step 2 completion after 30 seconds
+    setTimeout(() => {
+      setCurrentStep(3);
+    }, 30000);
+    
     try {
-      // Simulate step 1 completion after 10 seconds
-      setTimeout(() => {
-        setCurrentStep(2);
-      }, 10000);
-      
-      // Simulate step 2 completion after 30 seconds
-      setTimeout(() => {
-        setCurrentStep(3);
-      }, 30000);
-      
       // Call our API endpoint to generate the guide
       const response = await fetch('/api/generate-guide', {
         method: 'POST',
@@ -130,7 +118,9 @@ export default function WelcomeGuidePage() {
       });
       
       // Clear the timer
-      clearInterval(processingTimer);
+      if (processingTimer) {
+        clearInterval(processingTimer);
+      }
       
       if (!response.ok) {
         try {
@@ -163,9 +153,27 @@ export default function WelcomeGuidePage() {
         setStep("result");
         
         // Store the guide data in localStorage for the results page
-        if (mounted) {
-          localStorage.setItem('generatedGuide', JSON.stringify(data.guide));
-          router.push('/welcome-guide/results');
+        if (mounted && typeof window !== 'undefined') {
+          try {
+            // Create a JSON string first and validate it
+            const guideJSON = JSON.stringify(data.guide);
+            
+            // Make sure we can parse it back (validation)
+            JSON.parse(guideJSON);
+            
+            // Store in localStorage
+            localStorage.setItem('generatedGuide', guideJSON);
+            console.log('Guide data stored in localStorage successfully');
+            
+            // Add a small delay before redirecting
+            setTimeout(() => {
+              console.log('Redirecting to results page');
+              router.push('/welcome-guide/results');
+            }, 100);
+          } catch (storageError) {
+            console.error('Error storing guide data:', storageError);
+            throw new Error('Failed to save the generated guide. Please try again later.');
+          }
         }
       } catch (parseError) {
         console.error('Error parsing successful response:', parseError);
@@ -174,7 +182,9 @@ export default function WelcomeGuidePage() {
       
     } catch (err) {
       // Clear the timer
-      clearInterval(processingTimer);
+      if (processingTimer) {
+        clearInterval(processingTimer);
+      }
       
       console.error('Error generating guide:', err);
       setError(err instanceof Error ? err.message : "Failed to generate guide. Please try again later.");
@@ -241,15 +251,15 @@ export default function WelcomeGuidePage() {
         </div>
         
         <div className="mt-8 text-center">
-          <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-full">
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <div className="flex items-center justify-center text-blue-600">
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span>Processing... Please don't close this window</span>
+            <span>Processing... Please don&apos;t close this window</span>
           </div>
           <p className="mt-4 text-sm text-gray-500">
-            This process takes about 2 minutes to complete. We're using AI to create a personalized guide for your property.
+            This process takes about 2 minutes to complete. We&apos;re using AI to create a personalized guide for your property.
           </p>
         </div>
       </div>
