@@ -1,27 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-
-interface AnalysisResult {
-  pros: string[];
-  cons: string[];
-  recommendations: string[];
-  photosPros: string[];
-  photosImprovements: string[];
-  guestReviewsRatingsWhy: string[];
-  guestReviewsRatingsTips: string[];
-  headlineWhy: string[];
-  headlineTips: string[];
-  descriptionWhy: string[];
-  descriptionTips: string[];
-  amenitiesWhy: string[];
-  amenitiesTips: string[];
-  seoWhy: string[];
-  seoTips: string[];
-  listingScore: string | null;
-}
 
 export default function Home() {
   return (
@@ -39,13 +19,13 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link 
                 href="/analyze" 
-                className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-6 py-3 rounded-lg text-center transition-colors"
+                className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-6 py-3 rounded-lg text-center transition-colors relative z-10"
               >
                 Free Listing Analysis
               </Link>
               <Link 
                 href="#features" 
-                className="bg-blue-700 hover:bg-blue-800 px-6 py-3 rounded-lg text-center transition-colors"
+                className="bg-blue-700 hover:bg-blue-800 px-6 py-3 rounded-lg text-center transition-colors relative z-10"
               >
                 Explore Premium Features
               </Link>
@@ -55,12 +35,12 @@ export default function Home() {
             </p>
           </div>
         </div>
-        <div className="absolute bottom-0 right-0 w-full md:w-1/2 h-64 md:h-full opacity-10 md:opacity-20">
+        <div className="absolute bottom-0 right-0 w-full md:w-1/2 h-64 md:h-full opacity-10 md:opacity-20 pointer-events-none">
           <Image 
             src="/hero-pattern.svg" 
             alt="Background pattern" 
             fill 
-            className="object-cover"
+            className="object-cover pointer-events-none"
             priority
           />
         </div>
@@ -266,13 +246,13 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link 
               href="/analyze" 
-              className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-8 py-4 rounded-lg inline-block transition-colors"
+              className="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-8 py-4 rounded-lg inline-block transition-colors relative z-10"
             >
               Free Listing Analysis
             </Link>
             <Link 
               href="/account/signup" 
-              className="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-8 py-4 rounded-lg inline-block transition-colors border border-white"
+              className="bg-blue-700 hover:bg-blue-800 text-white font-semibold px-8 py-4 rounded-lg inline-block transition-colors border border-white relative z-10"
             >
               Create Account
             </Link>
@@ -379,7 +359,7 @@ function TestimonialCard({
 }) {
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <div className="text-2xl text-gray-400 mb-4">"</div>
+      <div className="text-4xl text-gray-400 mb-4">&ldquo;</div>
       <p className="text-gray-700 mb-4">{quote}</p>
       <div>
         <p className="font-semibold">{author}</p>
