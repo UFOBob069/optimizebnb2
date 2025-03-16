@@ -1283,7 +1283,7 @@ async function analyzeReviewsWithOpenAI(reviews: Review[], averageRating: number
     
     // Call OpenAI API
     const response = await openaiClient.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4-turbo",
       messages: [
         { role: "system", content: "You are an AI assistant that analyzes Airbnb reviews and provides structured insights." },
         { role: "user", content: prompt }

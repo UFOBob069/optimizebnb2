@@ -356,7 +356,7 @@ async function optimizeWithOpenAI(section: string, originalContent: string, prop
     
     // Make the API call to OpenAI
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",

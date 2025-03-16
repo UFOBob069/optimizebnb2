@@ -446,7 +446,8 @@ async function analyzeWithOpenAI(listingData) {
             {
               type: "image_url",
               image_url: {
-                url: imageUrl
+                url: imageUrl,
+                detail: "low"
               }
             }
           ]
@@ -459,7 +460,7 @@ async function analyzeWithOpenAI(listingData) {
     }
     
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages,
       temperature: 0.7,
       max_tokens: 1500

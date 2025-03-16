@@ -143,7 +143,7 @@ async function analyzePhotoWithAI(photoUrl: string) {
     console.log('Making API call to OpenAI Vision...');
     
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
